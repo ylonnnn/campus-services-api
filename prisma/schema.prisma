@@ -13,6 +13,8 @@ model User {
     id        String   @id @default(uuid())
     email     String   @unique
     password  String   // hashed
+    role      String   @default("student")
+    session   Int      @default(0)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }

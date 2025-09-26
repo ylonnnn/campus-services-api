@@ -1,5 +1,5 @@
 import { AppRouter } from "../../ExpressApp";
 
-import { AuthRouter } from "./auth";
+import { AuthRouter } from "./router";
 
 AppRouter.use("/auth", AuthRouter);
