@@ -10,13 +10,13 @@ Requests sent to the API may require authentication and authorization. The authe
 
 #### Signing Up
 
-To sign up, the frontend can simply send a **POST** request to the <u>/api/services/auth/signup</u> with the body:
+To sign up, the frontend can simply send a **POST** request to the **/api/services/auth/signup** with the body:
 
 ```json
 {
     // NOTE: No need for credential validation as the API already validates them
-    email: [EMAIL_ADDRESS],
-    password: [PASSWORD]
+    "email": "[EMAIL_ADDRESS]",
+    "password": "[PASSWORD]"
 }
 ```
 

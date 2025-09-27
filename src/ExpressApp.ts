@@ -8,6 +8,6 @@ app.use(express.json());
 app.use(express.static("src/test"));
 
 export const AppRouter = Router();
-app.use("/api/services/", AppRouter);
+app.use("/api/v1/", AppRouter);
 
 export default app;

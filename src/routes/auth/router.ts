@@ -3,45 +3,39 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import validator from "validator";
 
-import prisma from "../../services/prisma";
+import prisma, { UserRole } from "../../services/prisma";
 
-import { AuthUser, LoginData, LogoutData, SignupData } from "../../auth";
-import { UserRole } from "../../user";
+import {
+    AccountCreationStatus,
+    AuthUser,
+    createAccount,
+    LoginData,
+    LogoutData,
+    SignupData,
+} from "../../auth";
 
 export const AuthRouter = Router();
 
-const SALT_LENGTH = 10;
-
 AuthRouter.post("/signup", async (req, res) => {
     const { email, password } = req.body;
+    const status = await createAccount(email, password, UserRole.Student);
 
-    // Email and Password Validation
-    if (
-        !validator.isEmail(email) ||
-        !validator.isStrongPassword(password, {
-            minLength: 8,
-            minLowercase: 1,
-            minNumbers: 1,
-            minUppercase: 1,
-            minSymbols: 1,
-        })
-    )
-        return res
-            .status(401)
-            .json({ message: "Invalid login credentials" } as LoginData);
+    switch (status) {
+        case AccountCreationStatus.InvalidCredentials:
+            return res
+                .status(401)
+                .json({ message: "Invalid credentials" } as SignupData);
 
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (user)
-        return res.status(403).json({
-            message: "Email provided is already in use",
-        } as SignupData);
+        case AccountCreationStatus.EmailAlreadyUsed:
+            return res.status(403).json({
+                message: "Email provided is already in use",
+            } as SignupData);
 
-    const hashed = await bcrypt.hash(password, SALT_LENGTH);
-    await prisma.user.create({ data: { email, password: hashed } });
-
-    return res
-        .status(200)
-        .json({ message: "Signed up successfully" } as SignupData);
+        case AccountCreationStatus.Success:
+            return res
+                .status(200)
+                .json({ message: "Signed up successfully" } as SignupData);
+    }
 });
 
 AuthRouter.post("/login", async (req, res) => {

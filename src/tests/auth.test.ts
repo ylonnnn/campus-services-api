@@ -6,7 +6,7 @@ import { TestApp } from "./app";
 describe("Auth tests", () => {
     it("attempts to sign up a user", async () => {
         const response = await request(TestApp)
-            .post("/api/services/auth/signup")
+            .post("/api/v1/auth/signup")
             .send({
                 email: "anothertest@example.com",
                 password: "Admin#123",
@@ -25,7 +25,7 @@ describe("Auth tests", () => {
 
     it("attempts to sign up a user with an invalid email", async () => {
         const response = await request(TestApp)
-            .post("/api/services/auth/signup")
+            .post("/api/v1/auth/signup")
             .send({
                 email: "invalidemailaddress",
                 password: "ValidP@assw0rd",
@@ -37,7 +37,7 @@ describe("Auth tests", () => {
 
     it("attempts to login to an existing user", async () => {
         const response = await request(TestApp)
-            .post("/api/services/auth/login")
+            .post("/api/v1/auth/login")
             .send({
                 email: "test@example.com",
                 password: "admin123",
@@ -49,7 +49,7 @@ describe("Auth tests", () => {
 
     it("attempts to login to an existing user with an incorrect password", async () => {
         const response = await request(TestApp)
-            .post("/api/services/auth/login")
+            .post("/api/v1/auth/login")
             .send({
                 email: "test@example.com",
                 password: "ThisIsAnIncorrectPassword",
@@ -61,7 +61,7 @@ describe("Auth tests", () => {
 
     it("attempts to login to a user that does not exist", async () => {
         const response = await request(TestApp)
-            .post("/api/services/auth/login")
+            .post("/api/v1/auth/login")
             .send({
                 email: "nonexisting@account.com",
                 password: "thisaccountdoesnotexist",
@@ -69,5 +69,13 @@ describe("Auth tests", () => {
 
         expect(response.status).toBe(401);
         console.log(response.body);
+    });
+
+    it("users patch", async () => {
+        const response = await request(TestApp)
+            .patch("/api/v1/users/1")
+            .send({ randomdata: "hello world" });
+
+        console.log(response.status, response.body);
     });
 });
