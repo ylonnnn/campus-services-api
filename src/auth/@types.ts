@@ -1,6 +1,6 @@
 import { Request } from "express";
 
-import { UserRole } from "../../user";
+import { UserRole } from "../user";
 
 export interface AuthUser {
     id: string;
@@ -13,7 +13,7 @@ export interface AuthRequest extends Request {
     user?: AuthUser;
 }
 
-export interface SignedUpData {
+export interface SignupData {
     message: string;
 }
 

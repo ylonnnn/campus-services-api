@@ -1,14 +1,16 @@
 import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+import prisma from "../services/prisma";
+
 import { AuthRequest, AuthUser } from "./@types";
-import { UserRole } from "../../user";
-import prisma from "../../services/prisma";
+
+import { UserRole } from "../user";
 
 export async function authenticate(
     request: AuthRequest,
     response: Response,
-    next: NextFunction,
+    next: NextFunction
 ) {
     const authHeader = request.headers.authorization;
     const token = authHeader?.split(" ")[1];
@@ -24,12 +26,12 @@ export async function authenticate(
             const user = await prisma.user.findUnique({ where: { id } });
 
             if (!user || session != user.session)
-                return response.sendStatus(401).json({ message: "Invalid token" });
+                return response.status(401).json({ message: "Invalid token" });
         }
 
         next();
     } catch (err) {
-        // console.log(err);
+        console.log(err);
         return response.status(401).json({ message: "Invalid token" });
     }
 }
@@ -38,13 +40,16 @@ export function authorization(roles: Set<UserRole>) {
     return function authorizationMiddleware(
         request: AuthRequest,
         response: Response,
-        next: NextFunction,
+        next: NextFunction
     ) {
         const { user } = request;
-        if (!user) return response.status(401).json({ message: "Unauthenticated" });
+        if (!user)
+            return response.status(401).json({ message: "Unauthenticated" });
 
         if (!roles.has(user.role) && user.id != request.params.id)
-            return response.status(403).json({ message: "Insufficient permissions" });
+            return response
+                .status(403)
+                .json({ message: "Insufficient permissions" });
 
         next();
     };
