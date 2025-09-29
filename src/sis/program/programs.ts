@@ -9,6 +9,14 @@ class ProgramManager {
         }
     }
 
+    public async delete(code: string) {
+        try {
+            return await prisma.program.delete({ where: { code } });
+        } catch {
+            return null;
+        }
+    }
+
     public async get(code: string) {
         return await prisma.program.findUnique({ where: { code } });
     }

@@ -85,15 +85,15 @@ class Auth {
     ): Promise<LoginData> {
         const user = validator.isEmail(credentialKey)
             ? await prisma.user.findUnique({
-                  where: { email: credentialKey },
-                  include: inclusions.user,
-              })
+                where: { email: credentialKey },
+                include: inclusions.user,
+            })
             : students.isStudentNo(credentialKey)
-              ? await prisma.user.findFirst({
+                ? await prisma.user.findFirst({
                     where: { student: { studentNo: credentialKey } },
                     include: inclusions.user,
                 })
-              : null;
+                : null;
 
         if (!user || !(await bcrypt.compare(password, user.password)))
             return {

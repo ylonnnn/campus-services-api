@@ -5,15 +5,12 @@ export namespace inclusions {
             include: {
                 courseSched: {
                     include: {
-                        course: {
+                        faculty: {
                             include: {
-                                faculty: {
-                                    include: {
-                                        user: true,
-                                    },
-                                },
+                                user: true,
                             },
                         },
+                        course: true,
                     },
                 },
             },
@@ -23,11 +20,8 @@ export namespace inclusions {
     export const faculty = {
         user: true,
         courses: {
-            select: {
-                id: true,
-                code: true,
-                name: true,
-                units: true,
+            include: {
+                course: true,
             },
         },
     };

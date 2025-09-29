@@ -2,6 +2,22 @@
 
 ## v1.0.0
 
+#### 250929b
+
+- Updated the `schema.prisma`
+    - Moved `.faculty` from `Course` -> `CourseSchedule`
+- Addition of `sis/courses/`
+    - Addition of `routes/sis/courses`
+    - Addition of `courses` that manages courses
+        - Addition of `courses.create(code: string, name: string, units: number)`
+        - Addition of `courses.delete(code: string)`
+        - Addition of `courses.get(code: string)`
+    - Addition of `routes/sis/programs`
+    - Improvements within `programs`
+        - Addition of `programs.create(code: string, name: string)`
+        - Addition of `programs.delete(code: string)`
+        - Addition of `programs.get(code: string)`
+
 #### 250929a
 
 - Renamed `users/user-authority.ts` -> `users/roles.ts`

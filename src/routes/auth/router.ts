@@ -4,6 +4,7 @@ import prisma, { UserRole } from "../../services/prisma";
 
 import { auth, LoginData, LogoutData, SignupData } from "../../auth";
 import { users, UserAccountCreationStatus } from "../../user";
+import { isString } from "../../utils";
 
 export const AuthRouter = Router();
 
@@ -39,7 +40,7 @@ AuthRouter.post("/signup", async (req, res) => {
 
 AuthRouter.post("/login", async (req, res) => {
     const { credentialKey, password } = req.body;
-    if (!credentialKey || !password)
+    if (!isString(credentialKey) || !isString(password))
         return res.status(400).json({
             loggedIn: false,
             message: "Missing credentials",
@@ -51,7 +52,7 @@ AuthRouter.post("/login", async (req, res) => {
 
 AuthRouter.post("/logout", async (req, res) => {
     const { email } = req.body;
-    if (!email)
+    if (!isString(email))
         return res.status(401).json({
             loggedOut: false,
             message: "Unknown user with the provided email",
