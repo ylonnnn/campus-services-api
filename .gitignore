@@ -4,6 +4,9 @@
 /package-lock.json
 /node_modules
 
+/dest
+/dist
+
 /src/test
 
 /src/generated

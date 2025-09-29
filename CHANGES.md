@@ -2,6 +2,33 @@
 
 ## v1.0.0
 
+#### 250929a
+
+- Renamed `users/user-authority.ts` -> `users/roles.ts`
+- Updated `createAccount()` to validate roles
+- Created `users` from `user/users.ts`
+    - Moved `createAccount()` -> `users.create()`
+    - Updated account creation to include additional information
+    - Addition of `users.registerStudent()` which registers a `User` and a `StudentUser` with their informations bound to each other
+    - Addition of `users.regenerateUserPassword()` which allows the users to regenerate their own passwords
+    - Addition of `users.generate()` which generates a user with a randomly generated password. This is used for student registration
+- Created `students/` which will be utilized for student ulities
+    - Addition of `students.generateStudentNo()` which generates a student number based on the year, student count, branch code, etc
+- Addition of `email/` which utilized `SendGrid` for sending users data such as regenerated password, etc
+- Refactored `/api/v1/auth/login` handler
+    - Created `auth.login()`
+- Updated the way users sign-up
+    - Addition of `UserRole.Visitor`
+    - Made signing up only for visitors
+    - Allowed students to login with their student numbers
+    - Addition of `/api/v1/users/me/regen-pw`
+- Addition of additional utility functions in `users`
+- Updated almost every `UserPayload` to use `User` for convenience
+- Created `sis/` for the Student Information System
+    - Moved `student/` -> `sis/student/`
+- Addition of `users/inclusion` for inclusion objects
+- Addition of `sis.student.test`
+
 #### 250927a
 
 - Updated the `schema.prisma`

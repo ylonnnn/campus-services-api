@@ -1,2 +1,3 @@
+import "./auth";
+import "./sis";
 import "./users";
-import "./auth"

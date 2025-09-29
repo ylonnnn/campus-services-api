@@ -1,13 +1,23 @@
 import prisma, { UserRole, UserModel } from "../services/prisma";
 
-import { StudentUserPayload, FacultyUserPayload } from "./@types";
+import {
+    StudentUserPayload,
+    FacultyUserPayload,
+    UserName,
+    UserPayload,
+} from "./@types";
 
-export class User implements UserModel {
-    protected __user: UserModel;
+import { inclusions } from "./inclusion";
+
+export class User implements Omit<UserModel, "name" | "student" | "faculty"> {
+    protected __user: UserPayload;
 
     public readonly id: number;
+
     public readonly email: string;
     public readonly password: string;
+
+    public readonly name: UserName;
 
     public readonly role: UserRole;
     public readonly session: number;
@@ -18,12 +28,13 @@ export class User implements UserModel {
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
 
-    constructor(user: UserModel) {
+    constructor(user: UserPayload) {
         this.__user = user;
 
         this.id = user.id;
         this.email = user.email;
         this.password = user.password;
+        this.name = user.name as object as UserName;
         this.role = user.role;
         this.session = user.session;
         this.createdAt = user.createdAt;
@@ -33,17 +44,19 @@ export class User implements UserModel {
     }
 
     protected async initialize() {
-        this._student =
-            (await prisma.studentUser.findUnique({
-                where: { userId: this.id },
-                include: { courses: true },
-            })) ?? undefined;
+        this.__user.student =
+            (this._student =
+                (await prisma.studentUser.findUnique({
+                    where: { userId: this.id },
+                    include: inclusions.student,
+                })) ?? undefined) ?? null;
 
-        this._faculty =
-            (await prisma.facultyUser.findUnique({
-                where: { userId: this.id },
-                include: { courses: true },
-            })) ?? undefined;
+        this.__user.faculty =
+            (this._faculty =
+                (await prisma.facultyUser.findUnique({
+                    where: { userId: this.id },
+                    include: inclusions.faculty,
+                })) ?? undefined) ?? null;
     }
 
     public get ref(): UserModel {

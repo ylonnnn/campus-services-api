@@ -1,19 +1,6 @@
 import { Request } from "express";
 
-import { UserRole } from "../services/prisma";
-
-export interface AuthUser {
-    id: number;
-    email: string;
-    role: UserRole;
-    session: number;
-}
-
-export enum AccountCreationStatus {
-    InvalidCredentials = 0,
-    EmailAlreadyUsed,
-    Success,
-}
+import { User } from "../user";
 
 export interface AuthRequest extends Request {
     /**
@@ -22,7 +9,7 @@ export interface AuthRequest extends Request {
      * field creates a polymorphism error as it introduces a new field. Technically
      * just a polymorphic widening of sorts.
      */
-    users?: AuthUser[];
+    users?: User[];
 }
 
 export interface AuthenticationData {
@@ -34,11 +21,12 @@ export interface AuthorizationData {
 }
 
 export interface SignupData {
+    signedUp: boolean;
     message: string;
 }
 
 export type LoginData = { loggedIn: boolean; message: string } & (
-    | { loggedIn: true; token: string; user: AuthUser }
+    | { loggedIn: true; token: string; user: User }
     | { loggedIn: false }
 );
 
@@ -48,6 +36,6 @@ export interface LogoutData {
 }
 
 export type AuthorizationCondition = (
-    user: AuthUser,
+    user: User,
     request: AuthRequest
 ) => boolean;

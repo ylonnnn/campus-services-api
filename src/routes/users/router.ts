@@ -1,47 +1,76 @@
-import { Response, NextFunction, Router } from "express";
+import { Router } from "express";
 
 import { UserRole } from "../../generated/prisma";
 
-import prisma from "../../services/prisma";
-import { authenticate, authorization, AuthRequest, AuthUser } from "../../auth";
-import { User, UserSelfData } from "../../user";
-import { userAuthority } from "../../user/user-authority";
+import { auth, AuthRequest } from "../../auth";
+import {
+    User,
+    UserAccountCreationStatus,
+    UserPasswordRegenerationData,
+    UserSelfData,
+    userAuthority,
+    users,
+} from "../../user";
 
 export const UserRouter = Router();
 
-UserRouter.get("/me", authenticate, ({ users = [] }: AuthRequest, res) => {
+UserRouter.post(
+    "/",
+    auth.authenticate,
+    auth.authorization((user) => user.role == UserRole.Administrator),
+    async (req, res) => {
+        const { email, password, role, info } = req.body;
+        const [status, user] = await users.create(email, password, role, info);
+
+        switch (status) {
+            case UserAccountCreationStatus.InvalidCredentials:
+                return res.status(401).json({ message: "Invalid credentials" });
+
+            case UserAccountCreationStatus.EmailAlreadyUsed:
+                return res
+                    .status(403)
+                    .json({ message: "Email provided is already used" });
+
+            case UserAccountCreationStatus.Success:
+                return res.status(200).json({
+                    message: "User created successfully",
+                    user,
+                });
+        }
+    }
+);
+
+UserRouter.get("/me", auth.authenticate, ({ users = [] }: AuthRequest, res) => {
     return res.status(200).json({
         authenticated: true,
         message: "Self data retrieval successful",
-        user: users[0] as AuthUser, // users[0] is expected to be the self
+        user: users[0] as User, // users[0] is expected to be the self
     } as UserSelfData);
 });
 
-const retrieveUser = async (
-    { users = [], params }: AuthRequest,
-    res: Response,
-    next: NextFunction
-) => {
-    const id = params.id as string; // id is guaranteed to be a parameter
-    const user = await prisma.user.findUnique({
-        where: { id: parseInt(id) },
-    });
+UserRouter.post("/regen-pw", async (req: AuthRequest, res) => {
+    const { credentialKey } = req.body;
+    if (!credentialKey || typeof credentialKey != "string")
+        return res.status(400).json({
+            regenerated: false,
+            message: "Invalid or missing credentials",
+        } as UserPasswordRegenerationData);
 
-    if (!user)
-        return res
-            .status(404)
-            .json({ message: "Unknown user with the provided id" });
+    const recipient = await users.regenerateUserPassword(credentialKey);
 
-    users.push(user);
-
-    next();
-};
+    return res.status(recipient ? 200 : 401).json({
+        message: recipient
+            ? "Regenerated password successfully"
+            : "Failed to regenerate password",
+        sentTo: recipient,
+    } as UserPasswordRegenerationData);
+});
 
 UserRouter.get(
-    "/:id",
-    authenticate,
-    retrieveUser, // Retrieves the user with the provided id
-    authorization((user, { users = [] }) => {
+    "/:credential",
+    auth.authenticate,
+    users.retrieval("credential"),
+    auth.authorization((user, { users = [] }) => {
         const [self, target] = users;
         if (!self || !target) return false;
 
@@ -51,36 +80,31 @@ UserRouter.get(
     ({ users = [] }: AuthRequest, res) => {
         res.json({
             status: 200,
-            user: users[1] as AuthUser, //  users[1] is guaranteed to be the target user
+            user: users[1] as User, //  users[1] is guaranteed to be the target user
         });
     }
 );
 
 UserRouter.patch(
-    "/:id",
-    authenticate,
-    retrieveUser,
-    authorization((user, { users = [] }: AuthRequest) => {
+    "/:credential",
+    auth.authenticate,
+    users.retrieval("credential"),
+    auth.authorization((user, { users = [] }: AuthRequest) => {
         const authorizedRoles = userAuthority.get(user.role);
-        const target = users[1] as AuthUser;
+        const target = users[1] as User;
 
         return !!authorizedRoles?.has(target.role);
     }),
-    async (req: AuthRequest, res) => {
-        const { users = [] } = req;
-        const target = users[1] as AuthUser;
-        const targetEntry = await prisma.user.findUnique({
-            where: { id: target.id },
-        });
+    async ({ users: _users = [] }: AuthRequest, res) => {
+        const target = _users[1] as User;
+        const user = users.getById(target.id);
 
-        if (!targetEntry)
+        if (!user)
             return res
                 .status(400)
                 .json({ message: "Invalid user id provided" });
 
-        const user = new User(targetEntry);
-
-        console.log(user);
+        // console.log(user);
 
         res.status(200).json({
             message: "Patched user witht the provided id successfully",

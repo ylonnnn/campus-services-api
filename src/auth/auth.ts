@@ -3,104 +3,116 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 
-import prisma, { UserRole } from "../services/prisma";
+import prisma from "../services/prisma";
 
 import {
-    AccountCreationStatus,
     AuthRequest,
-    AuthUser,
     AuthenticationData,
     AuthorizationCondition,
     AuthorizationData,
+    LoginData,
 } from "./@types";
+import { students } from "../sis";
+import { inclusions, User, UserPayload } from "../user";
 
-export async function authenticate(
-    request: AuthRequest,
-    response: Response,
-    next: NextFunction
-) {
-    const authHeader = request.headers.authorization;
-    const token = authHeader?.split(" ")[1];
-
-    if (!token)
-        return response
-            .status(401)
-            .json({ message: "Invalidk token" } as AuthenticationData);
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        request.users = [decoded as AuthUser];
-
-        if (request.users?.[0]) {
-            const [{ id, session }] = request.users;
-            const user = await prisma.user.findUnique({ where: { id } });
-
-            if (!user || session != user.session)
-                return response
-                    .status(401)
-                    .json({ message: "Invalid token" } as AuthenticationData);
-        }
-
-        next();
-    } catch (err) {
-        console.log(err);
-        return response
-            .status(401)
-            .json({ message: "Invalid token" } as AuthenticationData);
-    }
-}
-
-export function authorization(condition: AuthorizationCondition) {
-    return function authorizationMiddleware(
+class Auth {
+    public async authenticate(
         request: AuthRequest,
         response: Response,
         next: NextFunction
     ) {
-        const [user] = request.users ?? [];
-        if (!user)
+        const authHeader = request.headers.authorization;
+        const token = authHeader?.split(" ")[1];
+
+        if (!token)
             return response
                 .status(401)
-                .json({ message: "Unauthenticated" } as AuthorizationData);
+                .json({ message: "Invalid token" } as AuthenticationData);
 
-        if (!condition(user, request))
-            return response.status(403).json({
-                message: "Insufficient permissions",
-            } as AuthorizationData);
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+            request.users = [new User(decoded as UserPayload)];
 
-        next();
-    };
+            // TODO: Session Management for multiple clients on the same account
+            // if (request.users?.[0]) {
+            //     const [{ id, session }] = request.users;
+            //     const user = await prisma.user.findUnique({ where: { id } });
+
+            //     if (!user || session != user.session)
+            //         return response.status(401).json({
+            //             message: "Invalid token",
+            //         } as AuthenticationData);
+            // }
+
+            next();
+        } catch (err) {
+            console.log(err);
+            return response
+                .status(401)
+                .json({ message: "Invalid token" } as AuthenticationData);
+        }
+    }
+
+    public authorization(condition: AuthorizationCondition) {
+        return function authorizationMiddleware(
+            request: AuthRequest,
+            response: Response,
+            next: NextFunction
+        ) {
+            const [user] = request.users ?? [];
+            if (!user)
+                return response
+                    .status(401)
+                    .json({ message: "Unauthenticated" } as AuthorizationData);
+
+            if (!condition(user, request))
+                return response.status(403).json({
+                    message: "Insufficient permissions",
+                } as AuthorizationData);
+
+            next();
+        };
+    }
+
+    /**
+     * Logs in to the user with the specified credential key and password
+     * @param credentialKey The credential key to be used. This can be the user's email or student number
+     * @param password The password of the user to log in to
+     */
+    public async login(
+        credentialKey: string,
+        password: string
+    ): Promise<LoginData> {
+        const user = validator.isEmail(credentialKey)
+            ? await prisma.user.findUnique({
+                  where: { email: credentialKey },
+                  include: inclusions.user,
+              })
+            : students.isStudentNo(credentialKey)
+              ? await prisma.user.findFirst({
+                    where: { student: { studentNo: credentialKey } },
+                    include: inclusions.user,
+                })
+              : null;
+
+        if (!user || !(await bcrypt.compare(password, user.password)))
+            return {
+                loggedIn: false,
+                message: "Invalid credentials",
+            } as LoginData;
+
+        // Generate JSON Web Token
+        const token = jwt.sign(user, process.env.JWT_SECRET!, {
+            expiresIn: "15m",
+        });
+
+        return {
+            loggedIn: true,
+            message: "Logged in successfully",
+            token,
+            user: new User(user),
+        } as LoginData;
+    }
 }
 
-export async function createAccount(
-    email: string,
-    password: string,
-    role: UserRole
-): Promise<AccountCreationStatus> {
-    // Email and Password Validation
-    if (
-        !validator.isEmail(email) ||
-        !validator.isStrongPassword(password, {
-            minLength: 8,
-            minLowercase: 1,
-            minNumbers: 1,
-            minUppercase: 1,
-            minSymbols: 1,
-        })
-    )
-        return AccountCreationStatus.InvalidCredentials;
-
-    // Usage Validation
-    if (await prisma.user.findUnique({ where: { email } }))
-        return AccountCreationStatus.EmailAlreadyUsed;
-
-    // Account Creation
-    await prisma.user.create({
-        data: {
-            email,
-            password: await bcrypt.hash(password, process.env.SALT_LENGTH!),
-            role,
-        },
-    });
-
-    return AccountCreationStatus.Success;
-}
+export const auth = new Auth();
