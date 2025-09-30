@@ -32,4 +32,16 @@ export namespace inclusions {
         student: { include: inclusions.student },
         faculty: { include: inclusions.faculty },
     };
+
+    export const section = {
+        students: { include: student },
+        program: true,
+        courses: {
+            include: {
+                course: true,
+                faculty: { include: faculty },
+                schedule: true,
+            },
+        },
+    };
 }

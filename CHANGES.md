@@ -2,7 +2,7 @@
 
 ## v1.0.0
 
-#### 250930b
+#### 251001a
 
 - Updated `programs` and `/api/v1/sis/programs`
     - Addition of `programs.update(code: string, data: Prisma.ProgramUpdateInput)`
@@ -24,6 +24,8 @@
     - Addition of `/api/v1/sis/sections/:code` PUT request handler
     - Addition of `/api/v1/sis/sections/:code` DELETE request handler
     - Addition of `/api/v1/sis/sections/:code` GET request handler
+    - Addition of `sections.createSchedule(code: string, course: string, faculty: UserName, scheduleSlots: SectionCourseScheduleOptions[])`
+    - Addition of `sections.assign(code: string, user: User)`
 
 #### 250930a
 

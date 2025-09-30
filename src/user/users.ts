@@ -3,14 +3,16 @@ import bcrypt from "bcryptjs";
 import validator from "validator";
 import generator from "generate-password";
 
-import { UserRole } from "../generated/prisma";
+import { Prisma, UserRole } from "../generated/prisma";
 import prisma from "../services/prisma";
 
 import {
+    FacultyUserPayload,
     StudentUserAdditionalInfo,
     StudentUserPayload,
     UserAccountCreationStatus,
     UserAdditionalInfo,
+    UserName,
     UserRetrievalFn,
 } from "./@types";
 
@@ -100,7 +102,12 @@ export class Users {
             include: inclusions.user,
         });
 
-        return entry ? new User(entry) : null;
+        if (!entry) return null;
+
+        const user = new User(entry);
+        await user.initialize();
+
+        return user;
     }
 
     public async getByStudentNo(studentNo: string): Promise<User | null> {
@@ -109,7 +116,28 @@ export class Users {
             include: inclusions.user,
         });
 
-        return entry ? new User(entry) : null;
+        if (!entry) return null;
+
+        const user = new User(entry);
+        await user.initialize();
+
+        return user;
+    }
+
+    public async getByName(name: UserName): Promise<User | null> {
+        const entry = await prisma.user.findFirst({
+            where: {
+                name: { equals: name as unknown as Prisma.JsonObject },
+            },
+            include: inclusions.user,
+        });
+
+        if (!entry) return null;
+
+        const user = new User(entry);
+        await user.initialize();
+
+        return user;
     }
 
     public async registerStudent(
@@ -120,9 +148,13 @@ export class Users {
         if (!program)
             return [StudentUserRegistrationStatus.UnknownProgram, null];
 
-        const section = await sections.get(info.section);
-        if (!section)
-            return [StudentUserRegistrationStatus.UnknownSection, null];
+        let section: Awaited<ReturnType<typeof sections.get>> | null = null;
+
+        if (info.section) {
+            section = await sections.get(info.section);
+            if (!section)
+                return [StudentUserRegistrationStatus.UnknownSection, null];
+        }
 
         const [status, user] = await this.generate(
             email,
@@ -137,14 +169,43 @@ export class Users {
                 user: { connect: { id: user.id } },
                 studentNo: await students.generateStudentNo(),
                 year: info.year,
-                section: { connect: { id: section.id } },
                 program: { connect: { id: program.id } },
                 courses: { create: [] },
+
+                ...(section
+                    ? { section: { connect: { id: section.id } } }
+                    : {}),
             },
             include: inclusions.student,
         });
 
         return [status, student];
+    }
+
+    public async registerFaculty(
+        email: string,
+        password: string,
+        info: UserAdditionalInfo
+    ): Promise<[StudentUserCreationStatus, FacultyUserPayload | null]> {
+        const [status, user] = await this.create(
+            email,
+            password,
+            UserRole.Faculty,
+            info
+        );
+
+        if (status != UserAccountCreationStatus.Success || !user)
+            return [status, null];
+
+        const faculty = await prisma.facultyUser.create({
+            data: {
+                user: { connect: { id: user.id } },
+                courses: { create: [] },
+            },
+            include: inclusions.faculty,
+        });
+
+        return [status, faculty];
     }
 
     // TODO: Potentially improve the program by creating separation with the notification email and the actual password generation and updating logic

@@ -27,7 +27,7 @@ export class User implements Omit<UserModel, "name" | "student" | "faculty"> {
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
 
-    constructor(user: UserPayload) {
+    public constructor(user: UserPayload) {
         this.__user = user;
 
         this.id = user.id;
@@ -41,7 +41,7 @@ export class User implements Omit<UserModel, "name" | "student" | "faculty"> {
         this.initialize();
     }
 
-    protected async initialize() {
+    public async initialize() {
         this.__user.student =
             (this._student =
                 (await prisma.studentUser.findUnique({

@@ -3,25 +3,50 @@ import request from "supertest";
 
 import { TestApp } from "./app";
 import { StudentScholasticStatus, UserRole } from "../generated/prisma";
-import { users } from "../user";
+import { StudentUserAdditionalInfo, users } from "../user";
 
 describe("User tests", () => {
     beforeAll(async () => {
-        const [status, student] = await users.registerStudent(
-            "arroyoxylon@gmail.com",
-            {
-                name: { given: "Xylon", middle: "Dela Torre", last: "Arroyo" },
-                program: "BSCS",
-                year: 2,
-                section: "BSCS1-1",
-                scholasticStatus: StudentScholasticStatus.Regular,
-            }
-        );
+        const students: [email: string, info: StudentUserAdditionalInfo][] = [
+            [
+                "arroyoxylon@gmail.com",
+                {
+                    name: {
+                        given: "Xylon",
+                        middle: "Dela Torre",
+                        last: "Arroyo",
+                    },
+                    program: "BSCS",
+                    year: 2,
+                    section: "BSCS1-1",
+                    scholasticStatus: StudentScholasticStatus.Regular,
+                },
+            ],
+            [
+                "clarkxavierarroyo@gmail.com",
+                {
+                    name: {
+                        given: "Clark Xavier",
+                        middle: "Dela Torre",
+                        last: "Arroyo",
+                    },
+                    program: "BSCS",
+                    year: 1,
+                    scholasticStatus: StudentScholasticStatus.Irregular,
+                },
+            ],
+        ];
 
-        status;
-        student;
-        // console.log(status);
-        // console.log(student);
+        for (const [email, info] of students) {
+            const [status, student] = await users.registerStudent(email, info);
+
+            console.log(status);
+            console.log(student);
+        }
+
+        await users.registerFaculty("fakefaculty@edu.ph", "FakeFaculty123", {
+            name: { given: "Fake", last: "Faculty" },
+        });
     });
 
     it("attempts to login as a student with student number", async () => {

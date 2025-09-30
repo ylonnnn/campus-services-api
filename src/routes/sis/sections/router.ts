@@ -3,7 +3,8 @@ import { Router } from "express";
 import { Prisma, UserRole } from "../../../generated/prisma";
 
 import { auth } from "../../../auth";
-import { sections } from "../../../sis";
+import { SectionCourseScheduleCreationStatus, sections } from "../../../sis";
+import { UserName } from "../../../user";
 
 export const SectionRouter = Router();
 
@@ -27,6 +28,48 @@ SectionRouter.post(
                 : "Section already exists",
             section,
         });
+    }
+);
+
+SectionRouter.post(
+    "/courses",
+    auth.authenticate,
+    auth.authorization((user) => user.role == UserRole.Administrator),
+    async (req, res) => {
+        const { data } = req.body;
+        const result = sections.scheduleSchema.safeParse(data);
+
+        if (!result.success) {
+            console.log(data);
+            console.log(result.error);
+            return res
+                .status(400)
+                .json({ message: "Invalid section course data" });
+        }
+
+        const { data: rdata } = result;
+        const status = await sections.createSchedule(
+            rdata.code,
+            rdata.course,
+            rdata.faculty as UserName,
+            rdata.scheduleSlots
+        );
+
+        switch (status) {
+            case SectionCourseScheduleCreationStatus.UnknownSection:
+                return res.status(404).json({ message: "Unknown section" });
+
+            case SectionCourseScheduleCreationStatus.UnknownCourse:
+                return res.status(404).json({ message: "Unknown course" });
+
+            case SectionCourseScheduleCreationStatus.UnknownFaculty:
+                return res.status(404).json({ message: "Unknown faculty" });
+
+            case SectionCourseScheduleCreationStatus.Success:
+                return res.status(200).json({
+                    message: "Created schedule for section successfully",
+                });
+        }
     }
 );
 

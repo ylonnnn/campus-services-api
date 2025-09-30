@@ -2,6 +2,9 @@ import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
 import request from "supertest";
 
 import { setup, tempStorage, TestApp } from "./app";
+import { WeekDay } from "../generated/prisma";
+import { sections } from "../sis";
+import { users } from "../user";
 
 describe("SIS Sections test", () => {
     beforeAll(async () => {
@@ -44,6 +47,40 @@ describe("SIS Sections test", () => {
             .set("Authorization", `Bearer ${tempStorage.get("token")}`);
 
         console.log(response.body);
+    });
+
+    it("attempts to create a schedule for a section", async () => {
+        const response = await request(TestApp)
+            .post("/api/v1/sis/sections/courses/")
+            .set("Authorization", `Bearer ${tempStorage.get("token")}`)
+            .send({
+                data: {
+                    code: "BSCS1-1",
+                    course: "COMP001",
+                    faculty: { given: "Fake", last: "Faculty" },
+                    scheduleSlots: [
+                        {
+                            weekDay: WeekDay.Monday,
+                            startTime: "10:30 AM",
+                            endTime: "01:00 PM",
+                        },
+                        {
+                            weekDay: WeekDay.Wednesday,
+                            startTime: "02:30 PM",
+                            endTime: "05:00 PM",
+                        },
+                    ],
+                },
+            });
+
+        console.log(response.body);
+    });
+
+    it("attempts to assign a section to a student", async () => {
+        const student = await users.getByStudentNo("2025-00001-MN-X");
+        if (!student) return;
+
+        await sections.assign("BSCS1-1", student);
     });
 
     afterAll(async () => {

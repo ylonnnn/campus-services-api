@@ -1,12 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+    provider = "prisma-client-js"
+    output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
 }
 
 enum UserRole {
@@ -72,6 +72,7 @@ model Section {
     year            Int
 
     students        StudentUser[]
+    courses         CourseSchedule[]
 }
 
 model StudentUser {
@@ -114,6 +115,28 @@ model Course {
     schedules       CourseSchedule[]
 }
 
+enum WeekDay {
+    Monday
+    Tuesday
+    Wednesday
+    Thursday
+    Friday
+    Saturday
+    Sunday
+}
+
+model ScheduleSlot {
+    id              Int                     @id @unique @default(autoincrement())
+
+    schedule        CourseSchedule          @relation(fields: [scheduleId], references: [id])
+    scheduleId      Int                     
+
+    weekDay         WeekDay
+
+    startTime       String
+    endTime         String
+}
+
 model CourseSchedule {
     id              Int                     @id @unique @default(autoincrement())
 
@@ -123,8 +146,10 @@ model CourseSchedule {
     faculty         FacultyUser             @relation(fields: [facultyId], references: [id])
     facultyId       Int                     
 
-    section         String
-    schedule        DateTime
+    section         Section                 @relation(fields: [sectionId], references: [id])
+    sectionId       Int 
+
+    schedule        ScheduleSlot[]
     
     enrollments     CourseEnrollment[]
 }

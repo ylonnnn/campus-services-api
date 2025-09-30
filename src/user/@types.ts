@@ -57,7 +57,7 @@ export interface StudentUserAdditionalInfo extends UserAdditionalInfo {
     scholasticStatus: StudentScholasticStatus;
     program: string;
     year: number;
-    section: string;
+    section?: string;
 }
 
 export enum UserAccountCreationStatus {
