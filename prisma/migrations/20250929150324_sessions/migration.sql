@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "public"."Session" ALTER COLUMN "createdAt" SET DEFAULT CURRENT_TIMESTAMP;

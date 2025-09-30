@@ -1,8 +1,8 @@
-import { describe, it, beforeAll } from "@jest/globals";
+import { describe, it, beforeAll, afterAll } from "@jest/globals";
 import request from "supertest";
 
 import { setup, tempStorage, TestApp } from "./app";
-import { programs } from "../sis/program/programs";
+import { programs } from "../sis";
 
 const registerPrograms = async () => {
     await programs.create("BSCS", "Bachelor of Science in Computer Science");
@@ -31,5 +31,12 @@ describe("SIS Students test", () => {
             response.status,
             response.body.user
         );
+    });
+
+    afterAll(async () => {
+        const response = await request(TestApp)
+            .post("/api/v1/auth/logout")
+            .set("Authorization", `Bearer ${tempStorage.get("token")}`);
+        console.log("sis.students", response.body);
     });
 });

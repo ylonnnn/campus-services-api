@@ -20,7 +20,6 @@ export class User implements Omit<UserModel, "name" | "student" | "faculty"> {
     public readonly name: UserName;
 
     public readonly role: UserRole;
-    public readonly session: number;
 
     protected _student?: StudentUserPayload | undefined;
     protected _faculty?: FacultyUserPayload | undefined;
@@ -36,7 +35,6 @@ export class User implements Omit<UserModel, "name" | "student" | "faculty"> {
         this.password = user.password;
         this.name = user.name as object as UserName;
         this.role = user.role;
-        this.session = user.session;
         this.createdAt = user.createdAt;
         this.updatedAt = user.updatedAt;
 
@@ -59,7 +57,7 @@ export class User implements Omit<UserModel, "name" | "student" | "faculty"> {
                 })) ?? undefined) ?? null;
     }
 
-    public get ref(): UserModel {
+    public get ref(): UserPayload {
         return this.__user;
     }
 

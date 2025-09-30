@@ -1,10 +1,17 @@
 import { Router } from "express";
 
-import prisma, { UserRole } from "../../services/prisma";
+import { UserRole } from "../../services/prisma";
 
-import { auth, LoginData, LogoutData, SignupData } from "../../auth";
+import {
+    auth,
+    AuthRequest,
+    LoginData,
+    LogoutData,
+    SignupData,
+} from "../../auth";
 import { users, UserAccountCreationStatus } from "../../user";
-import { isString } from "../../utils";
+import { isString, MINUTE } from "../../utils";
+import { sessions } from "../../session";
 
 export const AuthRouter = Router();
 
@@ -50,29 +57,33 @@ AuthRouter.post("/login", async (req, res) => {
     return res.status(data.loggedIn ? 200 : 401).json(data);
 });
 
-AuthRouter.post("/logout", async (req, res) => {
-    const { email } = req.body;
-    if (!isString(email))
-        return res.status(401).json({
+AuthRouter.post("/refresh", auth.authenticate, async (req, res) => {
+    const token = auth.tokenFromRequest(req);
+    if (!token) return res.status(401).json({ message: "Unauthenticated" });
+
+    const [newToken, duration] = await sessions.refresh(token);
+    return res.status(duration ? 200 : 403).json({
+        message: duration
+            ? "Refreshed session successfully"
+            : "Session does not exist",
+        token: newToken,
+        duration: MINUTE(duration),
+    });
+});
+
+AuthRouter.post("/logout", auth.authenticate, async (req: AuthRequest, res) => {
+    const token = auth.tokenFromRequest(req);
+
+    // Unlikely
+    if (!token)
+        return res.status(403).json({
             loggedOut: false,
-            message: "Unknown user with the provided email",
+            message: "Unauthenticated client",
         } as LogoutData);
 
-    const updated = (
-        await prisma.user.updateMany({
-            where: { email },
-            data: { session: { increment: 1 } },
-        })
-    ).count;
-
-    if (!updated)
-        return res.status(401).json({
-            loggedOut: false,
-            message: "Unknown user with the provided email",
-        } as LogoutData);
-
-    return res.status(200).json({
+    const session = await auth.logout(token);
+    return res.status(session ? 200 : 403).json({
         loggedOut: true,
-        message: "Logged out successfully",
+        message: session ? "Logged out successfully" : "Session does not exist",
     } as LogoutData);
 });

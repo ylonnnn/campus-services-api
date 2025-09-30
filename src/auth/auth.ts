@@ -1,5 +1,4 @@
-import { Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 
@@ -12,53 +11,47 @@ import {
     AuthorizationData,
     LoginData,
 } from "./@types";
+
 import { students } from "../sis";
-import { inclusions, User, UserPayload } from "../user";
+import { inclusions, User } from "../user";
+import { sessions } from "../session";
 
 class Auth {
+    public constructor() {
+        this.authenticate = this.authenticate.bind(this);
+    }
+
+    public tokenFromRequest(request: Request) {
+        return request.headers.authorization?.split(" ")[1];
+    }
+
     public async authenticate(
         request: AuthRequest,
         response: Response,
         next: NextFunction
     ) {
-        const authHeader = request.headers.authorization;
-        const token = authHeader?.split(" ")[1];
-
+        const token = this.tokenFromRequest(request);
         if (!token)
             return response
                 .status(401)
                 .json({ message: "Invalid token" } as AuthenticationData);
 
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-            request.users = [new User(decoded as UserPayload)];
-
-            // TODO: Session Management for multiple clients on the same account
-            // if (request.users?.[0]) {
-            //     const [{ id, session }] = request.users;
-            //     const user = await prisma.user.findUnique({ where: { id } });
-
-            //     if (!user || session != user.session)
-            //         return response.status(401).json({
-            //             message: "Invalid token",
-            //         } as AuthenticationData);
-            // }
-
-            next();
-        } catch (err) {
-            console.log(err);
+        const payload = sessions.verify(token);
+        if (!payload)
             return response
-                .status(401)
-                .json({ message: "Invalid token" } as AuthenticationData);
-        }
+                .status(403)
+                .json({ message: "Invalid or expired token" });
+
+        request.users = [new User(payload)];
+        next();
     }
 
     public authorization(condition: AuthorizationCondition) {
-        return function authorizationMiddleware(
+        return (
             request: AuthRequest,
             response: Response,
             next: NextFunction
-        ) {
+        ) => {
             const [user] = request.users ?? [];
             if (!user)
                 return response
@@ -101,17 +94,18 @@ class Auth {
                 message: "Invalid credentials",
             } as LoginData;
 
-        // Generate JSON Web Token
-        const token = jwt.sign(user, process.env.JWT_SECRET!, {
-            expiresIn: "15m",
-        });
-
+        // Create a session
+        const session = await sessions.create(new User(user));
         return {
             loggedIn: true,
             message: "Logged in successfully",
-            token,
+            token: session.token,
             user: new User(user),
         } as LoginData;
+    }
+
+    public async logout(token: string) {
+        return await sessions.delete(token);
     }
 }
 

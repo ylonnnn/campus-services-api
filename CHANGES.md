@@ -2,6 +2,22 @@
 
 ## v1.0.0
 
+#### 250930a
+
+- Updated the `README`
+- Addition of `sessions/`
+    - Addition of `sessions.create(token: string, userId: string)`
+    - Addition of `sessions.update(token: string, data: Prisma.SessionUpdateInput)`
+    - Addition of `sessions.delete(token: string)`
+    - Addition of `sessions.get(token: string)`
+    - Addition of `sessions.getAll(userId: number)`
+    - Addition of `sessions.refresh(token: string)`
+    - Addition of `sessions.verify(token: string)`
+    - Updated `sessions.getAll(userId: number)` -> `sessions.getAll(userId: number, clean: boolean = true)`
+- Bound `auth.authenticate` to self (`auth`)
+- Updated `auth.authenticate` to reject unauthenticated users
+- Addition of `/api/v1/auth/refresh` for refreshing the current session
+
 #### 250929b
 
 - Updated the `schema.prisma`

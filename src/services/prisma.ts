@@ -1,4 +1,5 @@
 import {
+    Prisma,
     PrismaClient,
     User,
     StudentUser,
@@ -10,6 +11,8 @@ const prisma = new PrismaClient();
 export default prisma;
 
 export {
+    Prisma,
+
     // Export models
     User as UserModel,
     StudentUser as StudentUserModel,

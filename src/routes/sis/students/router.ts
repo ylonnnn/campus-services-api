@@ -1,8 +1,9 @@
 import { Router } from "express";
 
+import { UserRole } from "../../../generated/prisma";
+
 import { User, userAuthority, users } from "../../../user";
 import { auth, AuthRequest } from "../../../auth";
-import { UserRole } from "../../../generated/prisma";
 
 export const StudentRouter = Router();
 

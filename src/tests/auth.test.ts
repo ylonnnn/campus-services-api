@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeAll } from "@jest/globals";
+import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
 import request from "supertest";
 
-import { setup, TestApp } from "./app";
+import { setup, tempStorage, TestApp } from "./app";
 
 describe("Auth tests", () => {
     beforeAll(async () => {
         // Login to an administrator account
-        setup();
+        await setup();
     });
 
     it("attempts to sign up a user", async () => {
@@ -70,7 +70,11 @@ describe("Auth tests", () => {
                 password: "ADMIN_test@123",
             });
 
-        response;
+        if (response.status == 200) {
+            await request(TestApp)
+                .post("/api/v1/auth/logout")
+                .set("Authorization", `Bearer ${response.body.token}`);
+        }
         // expect(response.status).toBe(200);
         // expect(response.body.message).toBe("Logged in successfully");
     });
@@ -98,5 +102,34 @@ describe("Auth tests", () => {
 
         expect(response.status).toBe(401);
         console.log(response.body);
+    });
+
+    it("attempts to logout from a user", async () => {
+        // Login temporarily to be able to logout
+        const loginResponse = await request(TestApp)
+            .post("/api/v1/auth/login")
+            .send({
+                credentialKey: "test@example.com",
+                password: "ADMIN_test@123",
+            });
+
+        console.log(loginResponse.body);
+        if (loginResponse.status == 200) {
+            await request(TestApp)
+                .post("/api/v1/auth/logout")
+                .set("Authorization", `Bearer ${loginResponse.body.token}`);
+
+            // Attempt to logout from the account
+            // const response = await request(TestApp)
+            //     .post("/api/v1/auth/logout")
+            //     .
+        }
+    });
+
+    afterAll(async () => {
+        const response = await request(TestApp)
+            .post("/api/v1/auth/logout")
+            .set("Authorization", `Bearer ${tempStorage.get("token")}`);
+        console.log("auth", response.body);
     });
 });

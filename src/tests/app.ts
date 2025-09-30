@@ -6,6 +6,7 @@ dotenv.config();
 
 // Setup the routes
 import "../routes";
+
 import { users } from "../user";
 import { UserRole } from "../generated/prisma";
 import { auth } from "../auth";

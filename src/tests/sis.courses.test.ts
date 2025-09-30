@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "@jest/globals";
+import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
 import request from "supertest";
 
 import { setup, tempStorage, TestApp } from "./app";
@@ -49,5 +49,12 @@ describe("SIS Programs test", () => {
             .set("Authorization", `Bearer ${token}`);
 
         console.log(response.body);
+    });
+
+    afterAll(async () => {
+        const response = await request(TestApp)
+            .post("/api/v1/auth/logout")
+            .set("Authorization", `Bearer ${tempStorage.get("token")}`);
+        console.log("sis.courses", response.body);
     });
 });

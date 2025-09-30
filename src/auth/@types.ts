@@ -12,6 +12,13 @@ export interface AuthRequest extends Request {
     users?: User[];
 }
 
+export type AuthorizationCondition = (
+    user: User,
+    request: AuthRequest
+) => boolean;
+
+// Response Data
+
 export interface AuthenticationData {
     message: string;
 }
@@ -30,12 +37,17 @@ export type LoginData = { loggedIn: boolean; message: string } & (
     | { loggedIn: false }
 );
 
+export interface RefreshData {
+    message: string;
+    token: string;
+
+    /**
+     * NOTE: Duration is saved in milliseconds
+     */
+    duration: number;
+}
+
 export interface LogoutData {
     loggedOut: boolean;
     message: string;
 }
-
-export type AuthorizationCondition = (
-    user: User,
-    request: AuthRequest
-) => boolean;

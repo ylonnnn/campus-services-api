@@ -34,6 +34,10 @@ describe("User tests", () => {
 
         console.log(response.status);
         console.log(response.body);
+        if (response.status == 200)
+            await request(TestApp)
+                .post("/api/v1/auth/logout")
+                .set("Authorization", `Bearer ${response.body.token}`);
     });
 
     // it("temp: regenerates user password", async () => {
@@ -66,6 +70,10 @@ describe("User tests", () => {
             .set("Authorization", `Bearer ${token}`);
 
         console.log("[self user information]", response1.body);
+
+        await request(TestApp)
+            .post("/api/v1/auth/logout")
+            .set("Authorization", `Bearer ${response.body.token}`);
     });
 
     it("attempts to create a user", async () => {
