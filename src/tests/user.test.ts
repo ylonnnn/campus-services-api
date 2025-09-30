@@ -13,7 +13,7 @@ describe("User tests", () => {
                 name: { given: "Xylon", middle: "Dela Torre", last: "Arroyo" },
                 program: "BSCS",
                 year: 2,
-                section: 1,
+                section: "BSCS1-1",
                 scholasticStatus: StudentScholasticStatus.Regular,
             }
         );

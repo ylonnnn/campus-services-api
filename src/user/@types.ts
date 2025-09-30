@@ -12,9 +12,9 @@ export interface UserName {
 
 export type UserSelfData = { authenticated: boolean; message: string } & (
     | {
-          authenticated: true;
-          user: User;
-      }
+        authenticated: true;
+        user: User;
+    }
     | { authenticated: false }
 );
 
@@ -48,7 +48,7 @@ export type FacultyUserPayload = NonNullable<
     Awaited<typeof testFacultyPayload>
 >;
 
-export interface UserAdditionalInfoName extends UserName {}
+export interface UserAdditionalInfoName extends UserName { }
 export interface UserAdditionalInfo {
     name: UserAdditionalInfoName;
 }
@@ -57,7 +57,7 @@ export interface StudentUserAdditionalInfo extends UserAdditionalInfo {
     scholasticStatus: StudentScholasticStatus;
     program: string;
     year: number;
-    section: number;
+    section: string;
 }
 
 export enum UserAccountCreationStatus {

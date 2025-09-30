@@ -2,6 +2,29 @@
 
 ## v1.0.0
 
+#### 250930b
+
+- Updated `programs` and `/api/v1/sis/programs`
+    - Addition of `programs.update(code: string, data: Prisma.ProgramUpdateInput)`
+    - Implementation of `/api/v1/sis/programs/:code` PUT request handler
+    - Addition of `programs.schema`
+    - Addition of `programs.partialSchema`
+- Updated `courses` and `/api/v1/sis/courses`
+    - Addition of `courses.update(code: string, data: Prisma.CourseUpdateInput)`
+    - Implementation of `/api/v1/sis/courses/:code` PUT request handler
+    - Addition of `courses.schema`
+    - Addition of `courses.partialSchema`
+- Addition of `sections` and `/api/v1/sis/sections`
+    - Addition of `sections.create(programCode: string, code: string, year: number)`
+    - Addition of `sections.update(code: string, data: Prisma.SectionUpdateInput)`
+    - Addition of `sections.delete(code: string)`
+    - Addition of `sections.get(code: string)`
+    - Addition of `sections.getAllFrom(programCode: number)`
+    - Addition of `/api/v1/sis/sections/` POST request handler
+    - Addition of `/api/v1/sis/sections/:code` PUT request handler
+    - Addition of `/api/v1/sis/sections/:code` DELETE request handler
+    - Addition of `/api/v1/sis/sections/:code` GET request handler
+
 #### 250930a
 
 - Updated the `README`

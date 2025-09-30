@@ -1,6 +1,8 @@
 export namespace inclusions {
     export const student = {
         user: true,
+        program: true,
+        section: { include: { program: true } },
         courses: {
             include: {
                 courseSched: {

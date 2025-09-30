@@ -7,3 +7,4 @@ AppRouter.use("/sis", SISRouter);
 import "./courses";
 import "./programs";
 import "./students";
+import "./sections";

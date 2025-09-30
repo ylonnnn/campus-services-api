@@ -16,6 +16,8 @@ import {
 
 import { roleSet } from "./roles";
 import {
+    programs,
+    sections,
     students,
     StudentUserCreationStatus,
     StudentUserRegistrationStatus,
@@ -114,12 +116,13 @@ export class Users {
         email: string,
         info: StudentUserAdditionalInfo
     ): Promise<[StudentUserCreationStatus, StudentUserPayload | null]> {
-        const program = await prisma.program.findUnique({
-            where: { code: info.program },
-        });
-
+        const program = await programs.get(info.program);
         if (!program)
             return [StudentUserRegistrationStatus.UnknownProgram, null];
+
+        const section = await sections.get(info.section);
+        if (!section)
+            return [StudentUserRegistrationStatus.UnknownSection, null];
 
         const [status, user] = await this.generate(
             email,
@@ -134,7 +137,7 @@ export class Users {
                 user: { connect: { id: user.id } },
                 studentNo: await students.generateStudentNo(),
                 year: info.year,
-                section: info.section,
+                section: { connect: { id: section.id } },
                 program: { connect: { id: program.id } },
                 courses: { create: [] },
             },

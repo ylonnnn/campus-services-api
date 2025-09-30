@@ -59,17 +59,40 @@ Which if the login was successful, the `token` and the `user` field are present.
 
 **ADDITIONAL NOTE**: To keep an account as logged in, the client-side must send a **POST** request to `/api/v1/auth/refresh` to refresh the lifetime of the session. This refresh is required every **15 minutes** as the expiration duration of the token is **15 minutes**
 
-### Logging Out
+### Token/Session Refresh (Hearbeat)
 
-Logging out from an account can simply be done by sending a **POST** request to the `/api/v1/auth/logout` and provided with the body:
+The generated token when logging in only lasts for **15 minutes** and once invalidated, considers the client as "**Unauthenticated"**. As users may utilize the application and continue sending requests for longer than 15 minutes, the client may send a refresh request every 15 minutes (or even before). The client-side can simply send a **POST** request to `/api/v1/auth/refresh` with the `Authorization` header set to the valid token (for authentication purposes).
 
-```json
-{
-    "email": "[EMAIL_ADDRESS]"
+The API returns a data that implements the `RefreshData` interface
+
+```ts
+export interface RefreshData {
+    message: string;
+    token: string;
+
+    /**
+     * NOTE: Duration is saved in milliseconds
+     */
+    duration: number;
 }
 ```
 
-Hence, keeping track of the active email address from the frontend is also required as the API simply handles basic data transactions and requires the client to handle the storing of temporary data. It may be a good idea to store them in storages such as the `sessionStorage` which keeps the data even after reload but resets when the tab or browser is closed.
+The `token` field is the newly generated token that can be used to update the currently bound auth token.
+
+### Logging Out
+
+Logging out from an account can simply be done by sending a **POST** request to the `/api/v1/auth/logout` with the `Authorization` header set that contains the token for authentication purposes.
+
+The API returns a data that implements the `LogoutData` interface
+
+```ts
+export interface LogoutData {
+    loggedOut: boolean;
+    message: string;
+}
+```
+
+Temporary data storages such as `sessionStorage` are suggested to be used for storing temporary credentials such as the token for authentication.
 
 ## Setup Guide
 

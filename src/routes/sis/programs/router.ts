@@ -1,10 +1,9 @@
 import { Router } from "express";
 
-import { UserRole } from "../../../generated/prisma";
+import { Prisma, UserRole } from "../../../generated/prisma";
 
 import { auth, AuthRequest } from "../../../auth";
 import { programs } from "../../../sis/program/programs";
-import { isString } from "../../../utils";
 
 export const ProgramRouter = Router();
 
@@ -13,14 +12,16 @@ ProgramRouter.post(
     auth.authenticate,
     auth.authorization((user) => user.role == UserRole.Administrator),
     async (req: AuthRequest, res) => {
-        const { code, name } = req.body;
-        if (!isString(code) || !isString(name))
-            return res
-                .status(400)
-                .json({ message: "Invalid or missing program data" });
+        const { data } = req.body;
+        const result = programs.schema.safeParse(data);
 
+        if (!result.success)
+            return res.status(400).json({ message: "Invalid program data" });
+
+        const { code, name } = result.data;
         const program = await programs.create(code, name);
-        return res.status(program ? 200 : 403).json({
+
+        return res.status(program ? 200 : 409).json({
             message: program
                 ? "Program created successfully"
                 : "Program already exists",
@@ -29,7 +30,29 @@ ProgramRouter.post(
     }
 );
 
-// TODO: CourseRouter.put()/CourseRouter.patch
+ProgramRouter.put(
+    "/:code",
+    auth.authenticate,
+    auth.authorization((user) => user.role == UserRole.Administrator),
+    async (req: AuthRequest, res) => {
+        const { data } = req.body;
+        const result = programs.partialSchema.safeParse(data);
+
+        if (!result.success)
+            return res.status(400).json({ message: "Invalid program data" });
+
+        const success = await programs.update(
+            req.params.code as string,
+            result.data as Prisma.ProgramUpdateInput
+        );
+
+        return res.status(success ? 200 : 404).json({
+            message: success
+                ? "Updated the program successfully"
+                : "Program does not exist",
+        });
+    }
+);
 
 ProgramRouter.delete(
     "/:code",
@@ -37,13 +60,13 @@ ProgramRouter.delete(
     auth.authorization((user) => user.role == UserRole.Administrator),
     async (req, res) => {
         const { code } = req.params;
-        if (!isString(code))
+        if (!code)
             return res
                 .status(400)
                 .json({ message: "Invalid or missing program code" });
 
         const program = await programs.delete(code);
-        return res.status(program ? 200 : 403).json({
+        return res.status(program ? 200 : 404).json({
             message: program
                 ? "Program deleted successfully"
                 : "Program does not exist",
@@ -58,7 +81,7 @@ ProgramRouter.get(
     auth.authorization((user) => user.role == UserRole.Administrator),
     async (req, res) => {
         const { code } = req.params;
-        if (!isString(code))
+        if (!code)
             return res
                 .status(400)
                 .json({ message: "Invalid or missing program code" });

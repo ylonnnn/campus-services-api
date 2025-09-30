@@ -2,6 +2,7 @@ import { User, UserAccountCreationStatus } from "../../user";
 
 export enum StudentUserRegistrationStatus {
     UnknownProgram,
+    UnknownSection,
 }
 
 export type StudentUserCreationStatus =
