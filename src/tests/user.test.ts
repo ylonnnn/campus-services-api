@@ -9,12 +9,12 @@ describe("User tests", () => {
     beforeAll(async () => {
         const students: [email: string, info: StudentUserAdditionalInfo][] = [
             [
-                "arroyoxylon@gmail.com",
+                "somerandomuser@gmail.com",
                 {
                     name: {
-                        given: "Xylon",
-                        middle: "Dela Torre",
-                        last: "Arroyo",
+                        given: "Some",
+                        middle: "Random",
+                        last: "User",
                     },
                     program: "BSCS",
                     year: 2,
@@ -23,12 +23,12 @@ describe("User tests", () => {
                 },
             ],
             [
-                "clarkxavierarroyo@gmail.com",
+                "anotherrandomuser@gmail.com",
                 {
                     name: {
-                        given: "Clark Xavier",
-                        middle: "Dela Torre",
-                        last: "Arroyo",
+                        given: "Another",
+                        middle: "Random",
+                        last: "User",
                     },
                     program: "BSCS",
                     year: 1,

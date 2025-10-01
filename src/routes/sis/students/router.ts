@@ -18,7 +18,6 @@ import {
     students,
 } from "../../../sis";
 import prisma from "../../../services/prisma";
-import { assert } from "console";
 
 export const StudentRouter = Router();
 

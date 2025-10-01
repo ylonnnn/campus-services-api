@@ -632,9 +632,25 @@ To retrieve the url and key for `SUPABASE_URL` and `SUPABASE_KEY`.
 
 Ensure that the dependencies of the project are installed.
 
-```bash 
+```bash
 npm install
 ```
+
+### Database Initialization
+
+To initialize the database and the prisma client. Simply run:
+
+```bash
+npx prisma generate
+```
+
+This will generate the prisma client. After that, the migrations must be pushed to the actual database
+
+```bash
+npx prisma migrate dev --name init
+```
+
+Upon migration, the tables should appear in the `Supabase` dashboard and it may have errors regarding **Row Level Security (RLS)**, you may simply enable RLS for each table.
 
 ### Running Tests
 
@@ -645,3 +661,11 @@ npm run test
 ```
 
 This command will execute the tests for specific features of the API. The command will trigger `jest`, and it is suggested to update the script `test` and remove the `--runInBand` flag to utilize multiple threads for testing.
+
+Do note that some tests may fail for the first test and some cases as some tests were written badly (I do apologize for that). The tests were made in a rush and only tested individually, with dependencies to other test cases. Hence, the bad written tests.
+
+**QUICK NOTE**
+
+(The information below are not to be used for reasoning out of the badly written program, simply a quick note for consideration)
+
+I'm more used to systems programming (or low-level programming in other terms). I'm completely new to web development and this has been quite an experience. This could have been better if I had more time but I only noticed the project challenge 4-5 days ago (see the commits and git history for proof).

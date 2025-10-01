@@ -2,6 +2,11 @@
 
 ## v1.0.0
 
+### 251001f
+
+- Fixed an error where a symbol is unused
+- Updated `README`
+
 ### 251001e
 
 - Updated `README`
