@@ -4,7 +4,13 @@ import { UserRole } from "../../../generated/prisma";
 
 import { User, userAuthority, users } from "../../../user";
 import { auth, AuthRequest } from "../../../auth";
-import { courses, sections, students } from "../../../sis";
+import {
+    courses,
+    sections,
+    StudentBasicRequestData,
+    StudentRequestData,
+    students,
+} from "../../../sis";
 import prisma from "../../../services/prisma";
 
 export const StudentRouter = Router();
@@ -18,9 +24,16 @@ StudentRouter.get(
     ),
     async (req: AuthRequest, res) => {
         if (!req.users)
-            return res.status(404).json({ message: "Missing expected users" });
+            return res.status(404).json({
+                success: false,
+                message: "Missing expected users",
+            } as StudentRequestData);
 
-        return res.status(200).json({ user: req.users[1] as User });
+        return res.status(200).json({
+            success: true,
+            message: "Retrieved student user successfully",
+            user: req.users[1] as User,
+        } as StudentRequestData);
     }
 );
 
@@ -33,7 +46,9 @@ StudentRouter.post(
         const result = students.enrollSchema.safeParse(data);
 
         if (!result.success)
-            return res.status(400).json({ message: "Invalid enrollment data" });
+            return res.status(400).json({
+                message: "Invalid enrollment data",
+            } as StudentBasicRequestData);
 
         const { studentNo, course } = result.data;
         let section: string | undefined = result.data.section;
@@ -42,19 +57,19 @@ StudentRouter.post(
         if (!user || !user.student)
             return res.status(404).json({
                 message: "Unknown student with the provided student number",
-            });
+            } as StudentBasicRequestData);
 
         section ??= user.student.section?.code;
         if (!section)
-            return res
-                .status(403)
-                .json({ message: "Section must be provided" });
+            return res.status(403).json({
+                message: "Section must be provided",
+            } as StudentBasicRequestData);
 
         const sectionPayload = await sections.get(section);
         if (!sectionPayload)
             return res.status(404).json({
                 message: "Unknown section with the provided section code",
-            });
+            } as StudentBasicRequestData);
 
         const courseSched = sectionPayload.courses.find(
             (sched) => sched.course.code == course
@@ -64,14 +79,15 @@ StudentRouter.post(
             return res.status(404).json({
                 message:
                     "Course does not exist in the course schedule of the section with the provided section code",
-            });
+            } as StudentBasicRequestData);
 
         console.log("courseSched", courseSched);
 
         await courses.enroll(user, courseSched);
         return res.status(200).json({
-            messge: "Enrolled the provided student to the provided course schedule of the provided section successfully",
-        });
+            message:
+                "Enrolled the provided student to the provided course schedule of the provided section successfully",
+        } as StudentBasicRequestData);
     }
 );
 
@@ -88,7 +104,9 @@ StudentRouter.post(
         const result = students.gradeSchema.safeParse(data);
 
         if (!result.success)
-            return res.status(400).json({ message: "Invalid grading data" });
+            return res.status(400).json({
+                message: "Invalid grading data",
+            } as StudentBasicRequestData);
 
         const { studentNo, course, grade, gradeStatus } = result.data;
         const user = await users.getByStudentNo(studentNo);
@@ -97,7 +115,7 @@ StudentRouter.post(
         if (!user || !user.student)
             return res.status(404).json({
                 message: "Unknown student with the provided student number",
-            });
+            } as StudentBasicRequestData);
 
         const { student } = user;
         const enrollment = student.courses.find(
@@ -107,7 +125,7 @@ StudentRouter.post(
             return res.status(404).json({
                 message:
                     "Unknown course. Student is not enrolled to this course",
-            });
+            } as StudentBasicRequestData);
 
         const { courseSched } = enrollment;
         if (
@@ -117,7 +135,7 @@ StudentRouter.post(
             return res.status(403).json({
                 message:
                     "Client is not the faculty assigned to the provided course and student",
-            });
+            } as StudentBasicRequestData);
 
         console.log(student.id, courseSched);
         const success =
@@ -130,12 +148,11 @@ StudentRouter.post(
                     data: { grade, gradeStatus },
                 })
             ).count > 0;
-        console.log(success);
 
         return res.status(success ? 200 : 404).json({
             message: success
                 ? "Updated the grade of the student in the provided course successfully"
                 : "Unknown enrollment",
-        });
+        } as StudentBasicRequestData);
     }
 );

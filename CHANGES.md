@@ -2,6 +2,11 @@
 
 ## v1.0.0
 
+#### 251001c
+
+- Updated `README`
+- Updated routes to return the documented types
+
 #### 251001b
 
 - Addition of `courses.enroll(user: User, course: CourseSchedule)`

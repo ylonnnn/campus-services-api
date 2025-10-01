@@ -7,6 +7,7 @@ class StudentManager {
     protected _studentNumberSchema = z
         .string()
         .regex(/^[0-9]{4,}-[0-9]{5,}-[A-Z]{2,}-[0-9|X]{1,}/);
+
     protected _enrollSchema = z.object({
         studentNo: this._studentNumberSchema,
         course: z.string(),

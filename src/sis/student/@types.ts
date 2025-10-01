@@ -1,5 +1,12 @@
 import { User, UserAccountCreationStatus } from "../../user";
 
+export interface StudentBasicRequestData {
+    message: string;
+}
+
+export type StudentRequestData = StudentBasicRequestData &
+    ({ success: true; user: User } | { success: false });
+
 export enum StudentUserRegistrationStatus {
     UnknownProgram,
     UnknownSection,

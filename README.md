@@ -114,7 +114,7 @@ Routes follow REST conventions, with pluralized resource names:
 
 #### Programs
 
-##### Program Creation
+#### Program Creation
 
 **Route**:
 `POST /api/v1/sis/programs`
@@ -135,7 +135,7 @@ export type ProgramRequestData = ProgramBasicRequestData &
     ({ success: true; program: ProgramModel } | { success: false });
 ```
 
-##### Program Update
+#### Program Update
 
 **Route**:
 `PUT /api/v1/sis/programs/:code`
@@ -159,7 +159,7 @@ export interface ProgramBasicRequestData {
 }
 ```
 
-##### Program Delete
+#### Program Delete
 
 **Route**:
 `DELETE /api/v1/sis/programs/:code`
@@ -171,7 +171,7 @@ export type ProgramRequestData = ProgramBasicRequestData &
     ({ success: true; program: ProgramModel } | { success: false });
 ```
 
-##### Program Retrieval
+#### Program Retrieval
 
 **Route**:
 `GET /api/v1/sis/programs/:code`
@@ -185,7 +185,7 @@ export type ProgramRequestData = ProgramBasicRequestData &
 
 #### Course
 
-##### Course Creation
+#### Course Creation
 
 **Route**:
 `POST /api/v1/sis/courses`
@@ -206,7 +206,7 @@ export type CourseRequestData = CourseBasicRequestData &
     ({ success: true; course: CourseModel } | { success: false });
 ```
 
-##### Courses Update
+#### Courses Update
 
 **Route**:
 `PUT /api/v1/sis/courses/:code`
@@ -230,7 +230,7 @@ export interface CourseBasicRequestData {
 }
 ```
 
-##### Course Delete
+#### Course Delete
 
 **Route**:
 `DELETE /api/v1/sis/courses/:code`
@@ -242,7 +242,7 @@ export type CourseRequestData = CourseBasicRequestData &
     ({ success: true; course: CourseModel } | { success: false });
 ```
 
-##### Course Retrieval
+#### Course Retrieval
 
 **Route**:
 `GET /api/v1/sis/courses/:code`
@@ -256,7 +256,7 @@ export type CourseRequestData = CourseBasicRequestData &
 
 #### Section
 
-##### Section Creation
+#### Section Creation
 
 **Route**:
 `POST /api/v1/sis/sections`
@@ -278,7 +278,7 @@ export type SectionRequestData = SectionBasicRequestData &
     ({ success: true; section: SectionModel } | { success: false });
 ```
 
-##### Section Update
+#### Section Update
 
 **Route**:
 `PUT /api/v1/sis/sections/:code`
@@ -301,7 +301,7 @@ export interface SectionBasicRequestData {
 }
 ```
 
-##### Section Delete
+#### Section Delete
 
 **Route**:
 `DELETE /api/v1/sis/sections/:code`
@@ -313,7 +313,7 @@ export type SectionRequestData = SectionBasicRequestData &
     ({ success: true; section: SectionModel } | { success: false });
 ```
 
-##### Section Retrieval
+#### Section Retrieval
 
 **Route**:
 `GET /api/v1/sis/sections/:code`
@@ -325,7 +325,7 @@ export type SectionRequestData = SectionBasicRequestData &
     ({ success: true; section: SectionModel } | { success: false });
 ```
 
-##### Section Course Scheduling
+#### Section Course Scheduling
 
 **Route**:
 `POST /api/v1/sis/sections/schedule`
@@ -337,19 +337,20 @@ export type SectionRequestData = SectionBasicRequestData &
     "data": {
         "code": "BSCS2-1", // Section Code
         "course": "COMP420", // Course Code
-        "faculty: {
+        "faculty": {
             "given": "John",
             "middle": "Dill", // Optional
             "last": "Doe"
         },
-        scheduleSlots: [
+        "scheduleSlots": [
             {
-                "weekDay": WeekDay.Wednesday,
+                "weekDay": "Wednesday", // WeekDay.Wednesday
                 "startTime": "09:30 AM", // Strict Format: 00:00 AM|PM (12-Hour Format)
                 "endTime": "12:30 PM"
             },
-            { // Can have multiple schedule slots
-                "weekDay": WeekDay.Friday,
+            {
+                // Can have multiple schedule slots
+                "weekDay": "Friday", // WeekDay.Friday
                 "startTime": "06:00 PM",
                 "endTime": "09:00 PM"
             }
@@ -366,9 +367,89 @@ export interface SectionBasicRequestData {
 }
 ```
 
+**NOTE**: Only authorized clients are allowed to perform these actions. Attempting to send these requets as an unauthorized user will result to `Unauthorized` status code and data.
+
+#### Students
+
+#### Student Data Retrieval
+
+This is only allowed for users with the `UserRole.Administrator` or `UserRole.Faculty` role
+
+**Route**:
+`GET /api/v1/sis/students/:studentno`
+
+**Returns**:
+
+```ts
+export type StudentRequestData = StudentBasicRequestData &
+    ({ success: true; user: User } | { success: false });
+```
+
+#### Student Enrollment
+
+For enrolling students to a specific course and/or even section. This is only allowed for users with the `UserRole.Administrator` role
+
+**Route**:
+`POST /api/v1/sis/students/enroll`
+
+**Body**:
+
+```json
+{
+    "data": {
+        "studentNo": "2025-69420-MN-X",
+        "course": "COMP069", // Course Code
+
+        // Optional, as irregular students may have any current
+        // permanent section
+        "section": "BSCS3-2" // Section Code
+    }
+}
+```
+
+**Returns**:
+
+```ts
+export interface StudentBasicRequestData {
+    message: string;
+}
+```
+
+#### Student Grade Updating
+
+For updating the grades of enrolled students to specific courses. This is only allowed for users with the `UserRole.Administrator` roles and `UserRole.Faculty` for the faculty assigned to the course.
+
+**Route**:
+`POST /api/v1/sis/students/grade`
+
+**Body**:
+
+```json
+{
+    "studentNo": "2025-69420-MN-X",
+    "course": "COMP420",
+    "grade": 1.0,
+
+    // Optional. Can be used when grade calculation is not done/pending but the status can be immediately specified (e.g Passed, Incomplete, Withdrawn, etc.).
+    "gradeStatus": "Passed" // GradeStatus.Passed
+}
+```
+
+**Returns**:
+
+```ts
+export interface StudentBasicRequestData {
+    message: string;
+}
+```
+
 ## Setup Guide
 
 Setting up the API for a specific use case and implementation requires a few modification depending on the desired configurations.
+
+### TODO: Technology Stack
+
+### TODO: Prerequisites
 
 ### Running Tests
 
