@@ -2,6 +2,10 @@
 
 A robust API for managing common campus operations such as student records, document request and processes, scheduling for offices, and other related administrative services.
 
+## Important Note
+
+As of **01/10/2025**, the only useful system/feature of **Campus Services API** is its Student Information System. Office scheduling services, and other functionalities and features are still to be developed.
+
 ## Usage Guide
 
 ### User Authentication & Authorization
@@ -93,6 +97,274 @@ export interface LogoutData {
 ```
 
 Temporary data storages such as `sessionStorage` are suggested to be used for storing temporary credentials such as the token for authentication.
+
+### Student Information System
+
+The Student Information System (SIS) manages programs, courses, sections, enrollment, schedules, and grades.
+
+Routes follow REST conventions, with pluralized resource names:
+
+`POST /programs, POST /courses, POST /sections` → Create
+
+`GET /programs/:code, GET /courses/:code, GET /sections/:code` → Retrieve
+
+`PUT /programs/:code, PUT /courses/:code, PUT /sections/:code` → Update
+
+`DELETE /programs/:code, DELETE /courses/:code, DELETE /sections/:code` → Delete
+
+#### Programs
+
+##### Program Creation
+
+**Route**:
+`POST /api/v1/sis/programs`
+
+**Body**:
+
+```json
+{
+    "code": "BSCpE",
+    "name": "Bachelor of Science in Computer Engineering"
+}
+```
+
+**Returns**:
+
+```ts
+export type ProgramRequestData = ProgramBasicRequestData &
+    ({ success: true; program: ProgramModel } | { success: false });
+```
+
+##### Program Update
+
+**Route**:
+`PUT /api/v1/sis/programs/:code`
+
+**Body**:
+
+```json
+{
+    // NOTE: The object is partial, which means any field can be left undefined
+    //       and only the fields that are to be updated specified.
+    "code": "BSCpE",
+    "name": "Bachelor of Science in Comp Engineering" // This is simply an example
+}
+```
+
+**Returns**:
+
+```ts
+export interface ProgramBasicRequestData {
+    message: string;
+}
+```
+
+##### Program Delete
+
+**Route**:
+`DELETE /api/v1/sis/programs/:code`
+
+**Returns**:
+
+```ts
+export type ProgramRequestData = ProgramBasicRequestData &
+    ({ success: true; program: ProgramModel } | { success: false });
+```
+
+##### Program Retrieval
+
+**Route**:
+`GET /api/v1/sis/programs/:code`
+
+**Returns**:
+
+```ts
+export type ProgramRequestData = ProgramBasicRequestData &
+    ({ success: true; program: ProgramModel } | { success: false });
+```
+
+#### Course
+
+##### Course Creation
+
+**Route**:
+`POST /api/v1/sis/courses`
+
+**Body**:
+
+```json
+{
+    "code": "COMP069",
+    "name": "Systems Programming"
+}
+```
+
+**Returns**:
+
+```ts
+export type CourseRequestData = CourseBasicRequestData &
+    ({ success: true; course: CourseModel } | { success: false });
+```
+
+##### Courses Update
+
+**Route**:
+`PUT /api/v1/sis/courses/:code`
+
+**Body**:
+
+```json
+{
+    // NOTE: The object is partial, which means any field can be left undefined
+    //       and only the fields that are to be updated specified.
+    "code": "COMP420",
+    "name": "Interpreter and Compiler Designs" // This is simply an example
+}
+```
+
+**Returns**:
+
+```ts
+export interface CourseBasicRequestData {
+    message: string;
+}
+```
+
+##### Course Delete
+
+**Route**:
+`DELETE /api/v1/sis/courses/:code`
+
+**Returns**:
+
+```ts
+export type CourseRequestData = CourseBasicRequestData &
+    ({ success: true; course: CourseModel } | { success: false });
+```
+
+##### Course Retrieval
+
+**Route**:
+`GET /api/v1/sis/courses/:code`
+
+**Returns**:
+
+```ts
+export type CourseRequestData = CourseBasicRequestData &
+    ({ success: true; course: CourseModel } | { success: false });
+```
+
+#### Section
+
+##### Section Creation
+
+**Route**:
+`POST /api/v1/sis/sections`
+
+**Body**:
+
+```json
+{
+    "program": "BSCS"
+    "code": "BSCS2-1",
+    "year": 2,
+}
+```
+
+**Returns**:
+
+```ts
+export type SectionRequestData = SectionBasicRequestData &
+    ({ success: true; section: SectionModel } | { success: false });
+```
+
+##### Section Update
+
+**Route**:
+`PUT /api/v1/sis/sections/:code`
+
+**Body**:
+
+```json
+{
+    // NOTE: The object is partial, which means any field can be left undefined
+    //       and only the fields that are to be updated specified.
+    "code": "BSCS2-1"
+}
+```
+
+**Returns**:
+
+```ts
+export interface SectionBasicRequestData {
+    message: string;
+}
+```
+
+##### Section Delete
+
+**Route**:
+`DELETE /api/v1/sis/sections/:code`
+
+**Returns**:
+
+```ts
+export type SectionRequestData = SectionBasicRequestData &
+    ({ success: true; section: SectionModel } | { success: false });
+```
+
+##### Section Retrieval
+
+**Route**:
+`GET /api/v1/sis/sections/:code`
+
+**Returns**:
+
+```ts
+export type SectionRequestData = SectionBasicRequestData &
+    ({ success: true; section: SectionModel } | { success: false });
+```
+
+##### Section Course Scheduling
+
+**Route**:
+`POST /api/v1/sis/sections/schedule`
+
+**Body**:
+
+```json
+{
+    "data": {
+        "code": "BSCS2-1", // Section Code
+        "course": "COMP420", // Course Code
+        "faculty: {
+            "given": "John",
+            "middle": "Dill", // Optional
+            "last": "Doe"
+        },
+        scheduleSlots: [
+            {
+                "weekDay": WeekDay.Wednesday,
+                "startTime": "09:30 AM", // Strict Format: 00:00 AM|PM (12-Hour Format)
+                "endTime": "12:30 PM"
+            },
+            { // Can have multiple schedule slots
+                "weekDay": WeekDay.Friday,
+                "startTime": "06:00 PM",
+                "endTime": "09:00 PM"
+            }
+        ]
+    }
+}
+```
+
+**Returns**:
+
+```ts
+export interface SectionBasicRequestData {
+    message: string;
+}
+```
 
 ## Setup Guide
 

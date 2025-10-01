@@ -1,4 +1,12 @@
 import { WeekDay } from "../../generated/prisma";
+import { SectionModel } from "../../services/prisma";
+
+export interface SectionBasicRequestData {
+    message: string;
+}
+
+export type SectionRequestData = SectionBasicRequestData &
+    ({ success: true; section: SectionModel } | { success: false });
 
 export enum SectionCourseScheduleCreationStatus {
     UnknownSection,

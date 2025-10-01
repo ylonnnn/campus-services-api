@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import prisma, { Prisma } from "../../services/prisma";
+import prisma, { CourseScheduleModel, Prisma } from "../../services/prisma";
+
+import { User } from "../../user";
+import { GradeStatus } from "../../generated/prisma";
 
 class CourseManager {
     protected _dataSchema = z.object({
@@ -44,6 +47,23 @@ class CourseManager {
 
     public async get(code: string) {
         return await prisma.course.findUnique({ where: { code } });
+    }
+
+    public async enroll(user: User, schedule: CourseScheduleModel) {
+        if (!user.student) return;
+
+        await prisma.studentUser.update({
+            where: { id: user.student.id },
+            data: {
+                courses: {
+                    create: {
+                        courseSched: { connect: { id: schedule.id } },
+                        gradeStatus: GradeStatus.Pending,
+                        grade: 0.0,
+                    },
+                },
+            },
+        });
     }
 }
 

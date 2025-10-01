@@ -3,7 +3,12 @@ import { Router } from "express";
 import { Prisma, UserRole } from "../../../generated/prisma";
 
 import { auth } from "../../../auth";
-import { SectionCourseScheduleCreationStatus, sections } from "../../../sis";
+import {
+    SectionBasicRequestData,
+    SectionCourseScheduleCreationStatus,
+    SectionRequestData,
+    sections,
+} from "../../../sis";
 import { UserName } from "../../../user";
 
 export const SectionRouter = Router();
@@ -17,59 +22,21 @@ SectionRouter.post(
         const result = sections.schema.safeParse(data);
 
         if (!result.success)
-            return res.status(400).json({ message: "Invalid section data" });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid section data",
+            } as SectionRequestData);
 
         const { program, code, year } = result.data;
         const section = await sections.create(program, code, year);
 
         return res.status(section ? 200 : 409).json({
+            success: true,
             message: section
                 ? "Created section successfully"
                 : "Section already exists",
             section,
-        });
-    }
-);
-
-SectionRouter.post(
-    "/courses",
-    auth.authenticate,
-    auth.authorization((user) => user.role == UserRole.Administrator),
-    async (req, res) => {
-        const { data } = req.body;
-        const result = sections.scheduleSchema.safeParse(data);
-
-        if (!result.success) {
-            console.log(data);
-            console.log(result.error);
-            return res
-                .status(400)
-                .json({ message: "Invalid section course data" });
-        }
-
-        const { data: rdata } = result;
-        const status = await sections.createSchedule(
-            rdata.code,
-            rdata.course,
-            rdata.faculty as UserName,
-            rdata.scheduleSlots
-        );
-
-        switch (status) {
-            case SectionCourseScheduleCreationStatus.UnknownSection:
-                return res.status(404).json({ message: "Unknown section" });
-
-            case SectionCourseScheduleCreationStatus.UnknownCourse:
-                return res.status(404).json({ message: "Unknown course" });
-
-            case SectionCourseScheduleCreationStatus.UnknownFaculty:
-                return res.status(404).json({ message: "Unknown faculty" });
-
-            case SectionCourseScheduleCreationStatus.Success:
-                return res.status(200).json({
-                    message: "Created schedule for section successfully",
-                });
-        }
+        } as SectionRequestData);
     }
 );
 
@@ -82,7 +49,9 @@ SectionRouter.put(
         const result = sections.partialSchema.safeParse(data);
 
         if (!result.success)
-            return res.status(400).json({ message: "Invalid section data" });
+            return res.status(400).json({
+                message: "Invalid section data",
+            } as SectionBasicRequestData);
 
         const success = await sections.update(
             req.params.code as string,
@@ -93,7 +62,7 @@ SectionRouter.put(
             message: success
                 ? "Updated section successfully"
                 : "Section does not exist",
-        });
+        } as SectionBasicRequestData);
     }
 );
 
@@ -104,15 +73,19 @@ SectionRouter.delete(
     async (req, res) => {
         const { code } = req.params;
         if (!code)
-            return res.status(400).json({ message: "Missing section code" });
+            return res.status(400).json({
+                success: false,
+                message: "Missing section code",
+            } as SectionRequestData);
 
         const section = await sections.delete(code);
         return res.status(section ? 200 : 404).json({
+            success: true,
             message: section
                 ? "Section deleted successfully"
                 : "Section does not exist",
             section,
-        });
+        } as SectionRequestData);
     }
 );
 
@@ -132,5 +105,50 @@ SectionRouter.get(
                 : "Section does not exist",
             section,
         });
+    }
+);
+
+SectionRouter.post(
+    "/schedule",
+    auth.authenticate,
+    auth.authorization((user) => user.role == UserRole.Administrator),
+    async (req, res) => {
+        const { data } = req.body;
+        const result = sections.scheduleSchema.safeParse(data);
+
+        if (!result.success)
+            return res.status(400).json({
+                message: "Invalid section course data",
+            } as SectionBasicRequestData);
+
+        const { data: rdata } = result;
+        const status = await sections.createSchedule(
+            rdata.code,
+            rdata.course,
+            rdata.faculty as UserName,
+            rdata.scheduleSlots
+        );
+
+        switch (status) {
+            case SectionCourseScheduleCreationStatus.UnknownSection:
+                return res.status(404).json({
+                    message: "Unknown section",
+                } as SectionBasicRequestData);
+
+            case SectionCourseScheduleCreationStatus.UnknownCourse:
+                return res.status(404).json({
+                    message: "Unknown course",
+                } as SectionBasicRequestData);
+
+            case SectionCourseScheduleCreationStatus.UnknownFaculty:
+                return res.status(404).json({
+                    message: "Unknown faculty",
+                } as SectionBasicRequestData);
+
+            case SectionCourseScheduleCreationStatus.Success:
+                return res.status(200).json({
+                    message: "Created schedule for section successfully",
+                } as SectionRequestData);
+        }
     }
 );

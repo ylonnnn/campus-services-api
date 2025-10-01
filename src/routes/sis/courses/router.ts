@@ -3,7 +3,11 @@ import { Router } from "express";
 import { Prisma, UserRole } from "../../../generated/prisma";
 
 import { auth, AuthRequest } from "../../../auth";
-import { courses } from "../../../sis";
+import {
+    CourseBasicRequestData,
+    CourseRequestData,
+    courses,
+} from "../../../sis";
 
 export const CourseRouter = Router();
 
@@ -16,17 +20,21 @@ CourseRouter.post(
         const result = courses.schema.safeParse(data);
 
         if (!result.success)
-            return res.status(400).json({ message: "Invalid course data" });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid course data",
+            } as CourseRequestData);
 
         const { code, name, units } = result.data;
         const course = await courses.create(code, name, units);
 
         return res.status(course ? 200 : 409).json({
+            success: true,
             message: course
                 ? "Course created successfully"
                 : "Course already exists",
             course,
-        });
+        } as CourseRequestData);
     }
 );
 
@@ -39,7 +47,9 @@ CourseRouter.put(
         const result = courses.partialSchema.safeParse(data);
 
         if (!result.success)
-            return res.status(400).json({ message: "Invalid course data" });
+            return res.status(400).json({
+                message: "Invalid course data",
+            } as CourseBasicRequestData);
 
         const success = await courses.update(
             req.params.code as string,
@@ -50,7 +60,7 @@ CourseRouter.put(
             message: success
                 ? "Updated the course successfully"
                 : "Course does not exist",
-        });
+        } as CourseBasicRequestData);
     }
 );
 
@@ -61,17 +71,19 @@ CourseRouter.delete(
     async (req, res) => {
         const { code } = req.params;
         if (!code)
-            return res
-                .status(400)
-                .json({ message: "Invalid or missing course code" });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or missing course code",
+            } as CourseRequestData);
 
         const course = await courses.delete(code);
         return res.status(course ? 200 : 404).json({
+            success: true,
             message: course
                 ? "Course deleted successfully"
                 : "Course does not exist",
             course,
-        });
+        } as CourseRequestData);
     }
 );
 
@@ -82,16 +94,18 @@ CourseRouter.get(
     async (req, res) => {
         const { code } = req.params;
         if (!code)
-            return res
-                .status(400)
-                .json({ message: "Invalid or missing course code" });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or missing course code",
+            } as CourseRequestData);
 
         const course = await courses.get(code);
         return res.status(course ? 200 : 404).json({
+            success: true,
             message: course
                 ? "Retrieved course data successfully"
                 : "Unknown course with the provided code",
             course,
-        });
+        } as CourseRequestData);
     }
 );

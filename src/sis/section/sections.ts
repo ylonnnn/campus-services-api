@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import prisma, { Prisma } from "../../services/prisma";
+import { WeekDay } from "../../generated/prisma";
 
 import {
     SectionCourseScheduleCreationStatus,
@@ -10,7 +11,6 @@ import {
 import { programs } from "../program";
 import { inclusions, User, UserName, users } from "../../user";
 import { courses } from "../course";
-import { GradeStatus, WeekDay } from "../../generated/prisma";
 
 class SectionManager {
     protected _dataSchema = z.object({
@@ -125,7 +125,7 @@ class SectionManager {
         if (!facultyUser || !facultyUser.faculty)
             return SectionCourseScheduleCreationStatus.UnknownFaculty;
 
-        await prisma.courseSchedule.create({
+        const schedule = await prisma.courseSchedule.create({
             data: {
                 section: { connect: { id: section.id } },
                 course: { connect: { id: coursePayload.id } },
@@ -134,6 +134,13 @@ class SectionManager {
                 schedule: { create: scheduleSlots },
             },
         });
+
+        const enrollments = section.students.map(async (student) => {
+            const user = (await users.getById(student.user.id)) as User;
+            courses.enroll(user, schedule);
+        });
+
+        await Promise.all(enrollments);
 
         return SectionCourseScheduleCreationStatus.Success;
     }
@@ -146,26 +153,11 @@ class SectionManager {
         if (!section) return;
 
         await this.update(code, { students: { connect: { id: user.id } } });
+        const enrollments = section.courses.map((schedule) =>
+            courses.enroll(user, schedule)
+        );
 
-        try {
-            console.log(section.courses);
-            await prisma.studentUser.update({
-                where: { userId: user.id },
-                data: {
-                    courses: {
-                        create: section.courses.map((sched) => {
-                            return {
-                                courseSched: { connect: { id: sched.id } },
-                                gradeStatus: GradeStatus.Pending,
-                                grade: 0.0,
-                            };
-                        }),
-                    },
-                },
-            });
-        } catch (err) {
-            console.log(err);
-        }
+        await Promise.all(enrollments);
     }
 }
 

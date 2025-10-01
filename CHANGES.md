@@ -2,6 +2,14 @@
 
 ## v1.0.0
 
+#### 251001b
+
+- Addition of `courses.enroll(user: User, course: CourseSchedule)`
+- Addition of `/api/v1/sis/students/enroll` for enrolling students to specific course schedules of specific sections
+- Updated `/api/v1/sis/sections/courses` -> `/api/v1/sis/sections/schedule` POST request handler
+- Addition of `/api/v1/sis/students/grade` for administrators and faculty (that handles the student and course provided)
+- Updated `README`
+
 #### 251001a
 
 - Updated `programs` and `/api/v1/sis/programs`
