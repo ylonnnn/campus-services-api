@@ -563,22 +563,77 @@ SUPABASE_KEY=
 DATABASE_URL=
 DIRECT_URL=
 
-# Salt Length used for Password Hashing
-SALT_LENGTH=
-
-# JSON Web Token Secret used for Signing Payloads
-JWT_SECRET=
-
 # API Key from SendGrid
 SENDGRID_API_KEY=
 
 # Email Addres of the Verified Sender in SendGrid
 SENDGRID_VERIFIED_SENDER=
 
+# JSON Web Token Secret used for Signing Payloads
+JWT_SECRET=
+
+# Salt Length used for Password Hashing
+SALT_LENGTH=
+
 # Code of the university branch
 # NOTE: This is only used depending on the student number format
 BRANCH_CODE=
 
+```
+
+### Environment Configuration: Supabase
+
+To retrieve the url and key for `SUPABASE_URL` and `SUPABASE_KEY`.
+
+1. Go to `https://supabase.com/`.
+    - Login to an account and go to your dashboard (`https://supabase.com/dashboard/organizations`).
+    - Select or create an organization.
+    - Select or create the project to be used.
+
+2. Scroll down until you see the **Connecting to your new project** section.
+    - Beside that is the `Project URL` that will be assigned to `SUPABASE_URL`.
+    - Below the project URL is the `API Key` that will be assigned to `SUPABASE_KEY`.
+
+3. Within the top navigation bar, click `Connect`.
+    - Select the **ORMs** tab.
+    - Copy the `DATABASE_URL` and the `DIRECT_URL` to the `.env` file.
+    - Replace the `[YOUR-PASSWORD]` or similar placeholders with the database password.
+
+### Environment Configuration: SendGrid
+
+1. Go to `https://www.twilio.com`.
+    - Click `Start for Free`.
+    - Signup or use a Google Account.
+    - The site may request for your phone number for verification and such. You may simply provide them for the code that will be sent via SMS or voice call.
+    - Simply enter the code sent to your phone number and press `Verify`. You may save the recovery code somewhere safe and accessible.
+
+2. Once redirected to the console, click `Email` within the left navigation bar/sidebar and press `Overview`.
+    - Scroll down a bit and until you see `Transactional Email` and click the `Transactional use case` redirection button.
+    - Once redirected, click `Start Free` and you may click `Skip to Dashboard` button at the top-right of the screen.
+
+3. Once within the main guide, simply follow the `How to start sending mail` guide. It may require creating a sender identity and verifying it. Use the email address of the verified sender as the value of `SENDGRID_VERIFIED_SENDER`.
+    - Proceed to step 2 which is `Learn about email sending options`. Click `Use Web API or SMTP`, and press the choices that applies to `Web API` and `JavaScript` (as the project utilizes typescript). Within the integration of the Web API part of the guide, you may need to create an API Key for the `SENDGRID_API_KEY`.
+
+### Environment Configuration: Miscellaneous
+
+**JWT_SECRET**
+
+- This is the secret used for signing **JSON Web Token**s. This configuration may be set to anything (e.g "secret-bleeehh", etc.).
+
+**SALT_LENGTH**
+
+- This is the salt length to be used for hashing the password inputs. For a reasonable length, try using `10`
+
+**BRANCH_CODE**
+
+- This is the code of the university branch to be used in the student number generation (e.g "MN", "SR", etc.).
+
+### Dependency Installation
+
+Ensure that the dependencies of the project are installed.
+
+```bash 
+npm install
 ```
 
 ### Running Tests

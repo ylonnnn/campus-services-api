@@ -2,6 +2,10 @@
 
 ## v1.0.0
 
+### 251001e
+
+- Updated `README`
+
 ### 251001d
 
 - Updated `README`
