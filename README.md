@@ -371,6 +371,34 @@ export interface SectionBasicRequestData {
 
 #### Students
 
+### Student Registration
+
+This is only allowed for users with the `UserRole.Administrator` role.
+
+**Route**:
+`POST /api/v1/sis/students/register`
+
+**Body**:
+
+```json
+{
+    "email": "user.email@example.com",
+    "info": {
+        "scholasticStatus": "Regular", // ScholasticStatus.Regular, Irregular, Returnee, etc.
+        "program": "BSIT", // Program Code
+        "section": "BSIT2-3", // Optional: Section Code
+        "year": 2
+    }
+}
+```
+
+**Returns**:
+
+```ts
+export type StudentRequestData = StudentBasicRequestData &
+    ({ success: true; user: User } | { success: false });
+```
+
 #### Student Data Retrieval
 
 This is only allowed for users with the `UserRole.Administrator` or `UserRole.Faculty` role
@@ -447,9 +475,111 @@ export interface StudentBasicRequestData {
 
 Setting up the API for a specific use case and implementation requires a few modification depending on the desired configurations.
 
-### TODO: Technology Stack
+### Technology Stack
 
-### TODO: Prerequisites
+### Core Framework & Server
+
+`express`: Web framework for building the REST API routes.
+
+`dotenv`: Loads environment variables from .env.
+
+### Database & ORM
+
+`prisma`: ORM for schema definition, migrations, and database queries.
+
+`@prisma/client`: Generated client library to interact with the database.
+
+### Authentication & Security
+
+`bcryptjs`: Password hashing (e.g., for storing user credentials securely).
+
+`jsonwebtoken`: For issuing and verifying JWTs (session/auth tokens).
+
+`validator`: Validation utilities (emails, URLs, etc.).
+
+`zod`: Schema validation library for runtime validation and type inference.
+
+### Email & External Services
+
+`@sendgrid/mail`: Send transactional emails (password reset, verification).
+
+`@supabase/supabase-js`: Interact with Supabase services (storage, auth, DB).
+
+### Development Tools
+
+`typescript`: Type safety and better developer experience.
+
+`ts-node`: Run TypeScript directly without compiling first.
+
+`ts-jest`: Run Jest tests with TypeScript.
+
+`jest`: Testing framework.
+
+`supertest`: HTTP testing library for Express endpoints.
+
+`nodemon`: Auto-restarts the server during development.
+
+### Type Definitions (dev-only, improve DX with TypeScript)
+
+`@types/express`
+
+`@types/jest`
+
+`@types/node`
+
+`@types/bcryptjs`
+
+`@types/jsonwebtoken`
+
+`@types/supertest`
+
+`@types/validator`
+
+### Misc
+
+`generate-password`: Utility to generate random passwords.
+
+### System Prerequisites
+
+`Node.js` (v18 or later) – required to run the backend (Express, Prisma, TypeScript).
+
+`npm` (comes with Node.js) – used for managing dependencies.
+
+`Git` – for cloning the repository and version control.
+
+### Environment Configuration
+
+Create a `.env` file in the root/project directory with the following variables
+
+```env
+# Port
+PORT=
+
+# Supabase Client Creation Data
+SUPABASE_URL=
+SUPABASE_KEY=
+
+# Supabase Database URLs
+DATABASE_URL=
+DIRECT_URL=
+
+# Salt Length used for Password Hashing
+SALT_LENGTH=
+
+# JSON Web Token Secret used for Signing Payloads
+JWT_SECRET=
+
+# API Key from SendGrid
+SENDGRID_API_KEY=
+
+# Email Addres of the Verified Sender in SendGrid
+SENDGRID_VERIFIED_SENDER=
+
+# Code of the university branch
+# NOTE: This is only used depending on the student number format
+BRANCH_CODE=
+
+```
 
 ### Running Tests
 
@@ -459,4 +589,4 @@ To execute the tests of the API, simply run the command:
 npm run test
 ```
 
-This command will execute the tests for specific features of the API.
+This command will execute the tests for specific features of the API. The command will trigger `jest`, and it is suggested to update the script `test` and remove the `--runInBand` flag to utilize multiple threads for testing.

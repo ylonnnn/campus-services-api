@@ -2,6 +2,11 @@
 
 ## v1.0.0
 
+### 251001d
+
+- Updated `README`
+- Addition of `/api/v1/sis/students/register`
+
 #### 251001c
 
 - Updated `README`

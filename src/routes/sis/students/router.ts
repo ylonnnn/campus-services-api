@@ -2,7 +2,13 @@ import { Router } from "express";
 
 import { UserRole } from "../../../generated/prisma";
 
-import { User, userAuthority, users } from "../../../user";
+import {
+    StudentUserAdditionalInfo,
+    User,
+    UserAccountCreationStatus,
+    userAuthority,
+    users,
+} from "../../../user";
 import { auth, AuthRequest } from "../../../auth";
 import {
     courses,
@@ -12,8 +18,56 @@ import {
     students,
 } from "../../../sis";
 import prisma from "../../../services/prisma";
+import { assert } from "console";
 
 export const StudentRouter = Router();
+
+StudentRouter.post(
+    "/register",
+    auth.authenticate,
+    auth.authorization((user) => user.role == UserRole.Administrator),
+    async (req, res) => {
+        const { data } = req.body;
+        const result = students.registrationSchema.safeParse(data);
+
+        if (!result.success)
+            return res.status(400).json({
+                success: false,
+                message: "Invalid registration data",
+            } as StudentRequestData);
+
+        const { email, info } = result.data;
+        const [status, payload] = await users.registerStudent(
+            email,
+            info as StudentUserAdditionalInfo
+        );
+
+        switch (status) {
+            case UserAccountCreationStatus.InvalidCredentials:
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid credentials",
+                } as StudentRequestData);
+
+            case UserAccountCreationStatus.EmailAlreadyUsed:
+                return res.status(403).json({
+                    success: false,
+                    message: "Provided email is already used",
+                } as StudentRequestData);
+
+            case UserAccountCreationStatus.Success:
+                const student = payload as NonNullable<typeof payload>;
+                const user = (await users.getById(student.user.id)) as User;
+                await user.initialize();
+
+                return res.status(200).json({
+                    success: true,
+                    message: "Registered student successfully",
+                    user,
+                } as StudentRequestData);
+        }
+    }
+);
 
 StudentRouter.get(
     "/:studentno",

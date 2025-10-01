@@ -1,12 +1,22 @@
 import { z } from "zod";
 
-import { GradeStatus } from "../../generated/prisma";
+import { GradeStatus, StudentScholasticStatus } from "../../generated/prisma";
 import prisma from "../../services/prisma";
 
 class StudentManager {
     protected _studentNumberSchema = z
         .string()
         .regex(/^[0-9]{4,}-[0-9]{5,}-[A-Z]{2,}-[0-9|X]{1,}/);
+
+    protected _registrationSchema = z.object({
+        email: z.email(),
+        info: z.object({
+            scholasticStatus: z.enum(StudentScholasticStatus),
+            program: z.string(),
+            section: z.string().optional(),
+            year: z.number(),
+        }),
+    });
 
     protected _enrollSchema = z.object({
         studentNo: this._studentNumberSchema,
@@ -20,6 +30,10 @@ class StudentManager {
         grade: z.number(),
         gradeStatus: z.enum(GradeStatus),
     });
+
+    public get registrationSchema() {
+        return this._registrationSchema;
+    }
 
     public studentNumberSchema() {
         return this._studentNumberSchema;
