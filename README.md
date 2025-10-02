@@ -14,7 +14,7 @@ Requests sent to the API may require authentication and authorization. The authe
 
 #### Signing Up
 
-Signing up is allowed for visitors to be able to interact with some features of the Campus Services. To sign up, the frontend can simply send a **POST** request to the **/api/services/auth/signup** with the body:
+Signing up is allowed for visitors to be able to interact with some features of the Campus Services. To sign up, the frontend can simply send a **POST** request to the **/api/v1/auth/signup** with the body:
 
 ```json
 {
@@ -37,7 +37,7 @@ Once the `signedUp` field becomes `true`, the credentials provided can now be us
 
 ### Logging In
 
-To login, the frontend can simply send a **POST** request to the **/api/services/auth/login** with the body:
+To login, the frontend can simply send a **POST** request to the **/api/v1/auth/login** with the body:
 
 ```json
 {
